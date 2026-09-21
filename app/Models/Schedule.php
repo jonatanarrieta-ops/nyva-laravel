@@ -15,7 +15,6 @@ class Schedule extends Model
         'status',
     ];
 
-
     /**
      * Relationship:
      * A schedule belongs to an establishment.
@@ -24,7 +23,6 @@ class Schedule extends Model
     {
         return $this->belongsTo(Establishment::class);
     }
-
 
     protected function casts(): array
     {

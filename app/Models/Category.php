@@ -15,7 +15,6 @@ class Category extends Model
         'status',
     ];
 
-
     /**
      * Relationship:
      * A category belongs to an establishment.
@@ -25,7 +24,6 @@ class Category extends Model
         return $this->belongsTo(Establishment::class);
     }
 
-
     /**
      * Relationship:
      * A category can have many products.
@@ -34,7 +32,6 @@ class Category extends Model
     {
         return $this->hasMany(Product::class);
     }
-
 
     protected function casts(): array
     {

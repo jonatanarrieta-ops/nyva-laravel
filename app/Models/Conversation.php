@@ -15,7 +15,6 @@ class Conversation extends Model
         'status',
     ];
 
-
     /**
      * Relationship:
      * A conversation belongs to an establishment.
@@ -24,7 +23,6 @@ class Conversation extends Model
     {
         return $this->belongsTo(Establishment::class);
     }
-
 
     protected function casts(): array
     {

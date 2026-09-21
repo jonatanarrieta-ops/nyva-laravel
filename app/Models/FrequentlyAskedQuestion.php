@@ -14,7 +14,6 @@ class FrequentlyAskedQuestion extends Model
         'status',
     ];
 
-
     /**
      * Relationship:
      * A frequently asked question belongs to an establishment.
@@ -23,7 +22,6 @@ class FrequentlyAskedQuestion extends Model
     {
         return $this->belongsTo(Establishment::class);
     }
-
 
     protected function casts(): array
     {

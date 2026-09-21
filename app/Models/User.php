@@ -32,17 +32,16 @@ use Illuminate\Support\Str;
     'password',
     'role',
     'status',
-    'registered_at'
+    'registered_at',
 ])]
 #[Hidden([
     'password',
-    'remember_token'
+    'remember_token',
 ])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
-
 
     /**
      * Relationship:
@@ -52,7 +51,6 @@ class User extends Authenticatable
     {
         return $this->hasMany(Establishment::class);
     }
-
 
     /**
      * Get the attributes that should be cast.
@@ -69,20 +67,19 @@ class User extends Authenticatable
         ];
     }
 
-
     /**
      * Get the user's initials.
      */
     public function initials(): string
     {
         $initials = Str::initials(
-            $this->first_name . ' ' . $this->last_name,
+            $this->first_name.' '.$this->last_name,
             true
         );
 
         return Str::length($initials) > 1
             ? Str::substr($initials, 0, 1)
-                . Str::substr($initials, -1)
+                .Str::substr($initials, -1)
             : $initials;
     }
 }

@@ -20,7 +20,6 @@ class Establishment extends Model
         'registered_at',
     ];
 
-
     /**
      * Relationship:
      * An establishment belongs to a user.
@@ -29,7 +28,6 @@ class Establishment extends Model
     {
         return $this->belongsTo(User::class);
     }
-
 
     /**
      * Relationship:
@@ -40,7 +38,6 @@ class Establishment extends Model
         return $this->hasMany(Subscription::class);
     }
 
-
     /**
      * Relationship:
      * An establishment can have many categories.
@@ -49,7 +46,6 @@ class Establishment extends Model
     {
         return $this->hasMany(Category::class);
     }
-
 
     /**
      * Relationship:
@@ -60,7 +56,6 @@ class Establishment extends Model
         return $this->hasMany(Schedule::class);
     }
 
-
     /**
      * Relationship:
      * An establishment can have many orders.
@@ -69,7 +64,6 @@ class Establishment extends Model
     {
         return $this->hasMany(Order::class);
     }
-
 
     /**
      * Relationship:
@@ -80,7 +74,6 @@ class Establishment extends Model
         return $this->hasMany(FrequentlyAskedQuestion::class);
     }
 
-
     /**
      * Relationship:
      * An establishment can have many conversations.
@@ -89,7 +82,6 @@ class Establishment extends Model
     {
         return $this->hasMany(Conversation::class);
     }
-
 
     protected function casts(): array
     {

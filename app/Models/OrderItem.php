@@ -15,7 +15,6 @@ class OrderItem extends Model
         'subtotal',
     ];
 
-
     /**
      * Relationship:
      * An order item belongs to an order.
@@ -25,7 +24,6 @@ class OrderItem extends Model
         return $this->belongsTo(Order::class);
     }
 
-
     /**
      * Relationship:
      * An order item belongs to a product.
@@ -34,7 +32,6 @@ class OrderItem extends Model
     {
         return $this->belongsTo(Product::class);
     }
-
 
     protected function casts(): array
     {

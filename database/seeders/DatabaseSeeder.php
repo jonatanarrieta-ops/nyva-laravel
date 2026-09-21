@@ -16,7 +16,6 @@ class DatabaseSeeder extends Seeder
 
             DB::beginTransaction();
 
-
             $this->call([
                 UserSeeder::class,
                 PlanSeeder::class,
@@ -31,16 +30,13 @@ class DatabaseSeeder extends Seeder
                 ConversationSeeder::class,
             ]);
 
-
             DB::commit();
-
 
         } catch (\Throwable $th) {
 
             DB::rollBack();
 
             dd($th->getMessage());
-
 
         } finally {
 

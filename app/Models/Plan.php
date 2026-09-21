@@ -15,7 +15,6 @@ class Plan extends Model
         'status',
     ];
 
-
     /**
      * Relationship:
      * A plan can have many subscriptions.
@@ -24,7 +23,6 @@ class Plan extends Model
     {
         return $this->hasMany(Subscription::class);
     }
-
 
     protected function casts(): array
     {

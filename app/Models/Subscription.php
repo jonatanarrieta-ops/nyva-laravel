@@ -16,7 +16,6 @@ class Subscription extends Model
         'status',
     ];
 
-
     /**
      * Relationship:
      * A subscription belongs to an establishment.
@@ -26,7 +25,6 @@ class Subscription extends Model
         return $this->belongsTo(Establishment::class);
     }
 
-
     /**
      * Relationship:
      * A subscription belongs to a plan.
@@ -35,7 +33,6 @@ class Subscription extends Model
     {
         return $this->belongsTo(Plan::class);
     }
-
 
     protected function casts(): array
     {

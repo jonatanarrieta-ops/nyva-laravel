@@ -19,18 +19,15 @@ class Order extends Model
         'ordered_at',
     ];
 
-
     public function establishment(): BelongsTo
     {
         return $this->belongsTo(Establishment::class);
     }
 
-
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
     }
-
 
     public function products(): BelongsToMany
     {
@@ -38,10 +35,9 @@ class Order extends Model
             ->withPivot([
                 'quantity',
                 'unit_price',
-                'subtotal'
+                'subtotal',
             ]);
     }
-
 
     protected function casts(): array
     {

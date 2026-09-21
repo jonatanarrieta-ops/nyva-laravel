@@ -18,7 +18,6 @@ class Product extends Model
         'status',
     ];
 
-
     /**
      * Relationship:
      * A product belongs to a category.
@@ -28,7 +27,6 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
-
     /**
      * Relationship:
      * A product can appear in many order items.
@@ -37,7 +35,6 @@ class Product extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
-
 
     protected function casts(): array
     {
