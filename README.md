@@ -31,7 +31,7 @@ php artisan migrate:fresh --seed
 ## Integrantes
 
 - Jonatan David Arrieta Escobar
-- 
+- Jesus Alberto Carrillo Jaraba
 - 
 
 ## Instalación y ejecución
