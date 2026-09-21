@@ -19,16 +19,25 @@ class Order extends Model
         'ordered_at',
     ];
 
+    /**
+     * @return BelongsTo<Establishment, Order>
+     */
     public function establishment(): BelongsTo
     {
         return $this->belongsTo(Establishment::class);
     }
 
+    /**
+     * @return HasMany<OrderItem, Order>
+     */
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
     }
 
+    /**
+     * @return BelongsToMany<Product, Order>
+     */
     public function products(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'order_items')

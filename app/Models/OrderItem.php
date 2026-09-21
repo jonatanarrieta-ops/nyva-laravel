@@ -16,8 +16,7 @@ class OrderItem extends Model
     ];
 
     /**
-     * Relationship:
-     * An order item belongs to an order.
+     * @return BelongsTo<Order, OrderItem>
      */
     public function order(): BelongsTo
     {

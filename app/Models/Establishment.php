@@ -21,8 +21,7 @@ class Establishment extends Model
     ];
 
     /**
-     * Relationship:
-     * An establishment belongs to a user.
+     * @return BelongsTo<User, Establishment>
      */
     public function user(): BelongsTo
     {
@@ -30,8 +29,7 @@ class Establishment extends Model
     }
 
     /**
-     * Relationship:
-     * An establishment can have many subscriptions.
+     * @return HasMany<Subscription, Establishment>
      */
     public function subscriptions(): HasMany
     {
@@ -39,8 +37,7 @@ class Establishment extends Model
     }
 
     /**
-     * Relationship:
-     * An establishment can have many categories.
+     * @return HasMany<Category, Establishment>
      */
     public function categories(): HasMany
     {
@@ -48,8 +45,7 @@ class Establishment extends Model
     }
 
     /**
-     * Relationship:
-     * An establishment can have many schedules.
+     * @return HasMany<Schedule, Establishment>
      */
     public function schedules(): HasMany
     {
@@ -57,8 +53,7 @@ class Establishment extends Model
     }
 
     /**
-     * Relationship:
-     * An establishment can have many orders.
+     * @return HasMany<Order, Establishment>
      */
     public function orders(): HasMany
     {
@@ -66,8 +61,7 @@ class Establishment extends Model
     }
 
     /**
-     * Relationship:
-     * An establishment can have many frequently asked questions.
+     * @return HasMany<FrequentlyAskedQuestion, Establishment>
      */
     public function frequentlyAskedQuestions(): HasMany
     {
@@ -75,8 +69,7 @@ class Establishment extends Model
     }
 
     /**
-     * Relationship:
-     * An establishment can have many conversations.
+     * @return HasMany<Conversation, Establishment>
      */
     public function conversations(): HasMany
     {

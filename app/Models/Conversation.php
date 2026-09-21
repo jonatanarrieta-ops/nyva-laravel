@@ -16,8 +16,7 @@ class Conversation extends Model
     ];
 
     /**
-     * Relationship:
-     * A conversation belongs to an establishment.
+     * @return BelongsTo<Establishment, Conversation>
      */
     public function establishment(): BelongsTo
     {

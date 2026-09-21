@@ -21,6 +21,8 @@ class Product extends Model
     /**
      * Relationship:
      * A product belongs to a category.
+     *
+     * @return BelongsTo<Category, Product>
      */
     public function category(): BelongsTo
     {
@@ -30,6 +32,8 @@ class Product extends Model
     /**
      * Relationship:
      * A product can appear in many order items.
+     *
+     * @return HasMany<OrderItem, Product>
      */
     public function orderItems(): HasMany
     {

@@ -16,8 +16,7 @@ class Category extends Model
     ];
 
     /**
-     * Relationship:
-     * A category belongs to an establishment.
+     * @return BelongsTo<Establishment, Category>
      */
     public function establishment(): BelongsTo
     {
@@ -25,8 +24,7 @@ class Category extends Model
     }
 
     /**
-     * Relationship:
-     * A category can have many products.
+     * @return HasMany<Product, Category>
      */
     public function products(): HasMany
     {

@@ -17,8 +17,7 @@ class Subscription extends Model
     ];
 
     /**
-     * Relationship:
-     * A subscription belongs to an establishment.
+     * @return BelongsTo<Establishment, Subscription>
      */
     public function establishment(): BelongsTo
     {
@@ -26,8 +25,7 @@ class Subscription extends Model
     }
 
     /**
-     * Relationship:
-     * A subscription belongs to a plan.
+     * @return BelongsTo<Plan, Subscription>
      */
     public function plan(): BelongsTo
     {

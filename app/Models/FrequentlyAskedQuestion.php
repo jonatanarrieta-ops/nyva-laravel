@@ -15,8 +15,7 @@ class FrequentlyAskedQuestion extends Model
     ];
 
     /**
-     * Relationship:
-     * A frequently asked question belongs to an establishment.
+     * @return BelongsTo<Establishment, FrequentlyAskedQuestion>
      */
     public function establishment(): BelongsTo
     {
