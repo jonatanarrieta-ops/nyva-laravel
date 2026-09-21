@@ -32,7 +32,7 @@ php artisan migrate:fresh --seed
 
 - Jonatan David Arrieta Escobar
 - Jesus Alberto Carrillo Jaraba
-- 
+- Jorge Alberto Daza Hernández 
 
 ## Instalación y ejecución
 
