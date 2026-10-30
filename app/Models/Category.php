@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Category extends Model
 {
+    public $timestamps = false;
+    use HasFactory;
+
     protected $fillable = [
         'establishment_id',
         'name',
@@ -15,17 +19,11 @@ class Category extends Model
         'status',
     ];
 
-    /**
-     * @return BelongsTo<Establishment, Category>
-     */
     public function establishment(): BelongsTo
     {
         return $this->belongsTo(Establishment::class);
     }
 
-    /**
-     * @return HasMany<Product, Category>
-     */
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
@@ -34,7 +32,6 @@ class Category extends Model
     protected function casts(): array
     {
         return [
-            'status' => 'boolean',
         ];
     }
 }

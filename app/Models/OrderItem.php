@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OrderItem extends Model
 {
+    public $timestamps = false;
+    use HasFactory;
+
     protected $fillable = [
         'order_id',
         'product_id',
@@ -15,18 +19,11 @@ class OrderItem extends Model
         'subtotal',
     ];
 
-    /**
-     * @return BelongsTo<Order, OrderItem>
-     */
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
     }
 
-    /**
-     * Relationship:
-     * An order item belongs to a product.
-     */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
@@ -35,6 +32,7 @@ class OrderItem extends Model
     protected function casts(): array
     {
         return [
+            'quantity' => 'integer',
             'unit_price' => 'decimal:2',
             'subtotal' => 'decimal:2',
         ];

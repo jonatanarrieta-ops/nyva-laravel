@@ -41,6 +41,7 @@ use Illuminate\Support\Str;
 ])]
 class User extends Authenticatable
 {
+    public $timestamps = false;
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
@@ -60,9 +61,7 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'registered_at' => 'datetime',
-            'status' => 'boolean',
             'password' => 'hashed',
         ];
     }

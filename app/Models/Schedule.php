@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Schedule extends Model
 {
+    public $timestamps = false;
     use HasFactory;
 
     protected $fillable = [
@@ -21,7 +22,6 @@ class Schedule extends Model
     protected function casts(): array
     {
         return [
-            'status' => 'boolean',
         ];
     }
 

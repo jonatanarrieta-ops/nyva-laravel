@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
+    public $timestamps = false;
+    use HasFactory;
+
     protected $fillable = [
         'category_id',
         'name',
@@ -18,23 +22,11 @@ class Product extends Model
         'status',
     ];
 
-    /**
-     * Relationship:
-     * A product belongs to a category.
-     *
-     * @return BelongsTo<Category, Product>
-     */
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
 
-    /**
-     * Relationship:
-     * A product can appear in many order items.
-     *
-     * @return HasMany<OrderItem, Product>
-     */
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
@@ -45,7 +37,6 @@ class Product extends Model
         return [
             'price' => 'decimal:2',
             'available' => 'boolean',
-            'status' => 'boolean',
         ];
     }
 }
