@@ -2,31 +2,34 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Conversation extends Model
 {
+    use HasFactory;
+
+    public $timestamps = false;
+
     protected $fillable = [
         'establishment_id',
-        'customer_name',
-        'message',
-        'response',
+        'customer_identifier',
+        'started_at',
+        'ended_at',
         'status',
     ];
-
-    /**
-     * @return BelongsTo<Establishment, Conversation>
-     */
-    public function establishment(): BelongsTo
-    {
-        return $this->belongsTo(Establishment::class);
-    }
 
     protected function casts(): array
     {
         return [
-            'status' => 'boolean',
+            'started_at' => 'datetime',
+            'ended_at' => 'datetime',
         ];
+    }
+
+    public function establishment(): BelongsTo
+    {
+        return $this->belongsTo(Establishment::class);
     }
 }

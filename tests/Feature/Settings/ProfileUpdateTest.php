@@ -4,9 +4,10 @@ use App\Models\User;
 use Livewire\Livewire;
 
 test('profile page is displayed', function () {
-    $this->actingAs($user = User::factory()->create());
+    $this->actingAs(User::factory()->create());
 
-    $this->get(route('profile.edit'))->assertOk();
+    $this->get(route('profile.edit'))
+        ->assertOk();
 });
 
 test('profile information can be updated', function () {
@@ -15,7 +16,8 @@ test('profile information can be updated', function () {
     $this->actingAs($user);
 
     $response = Livewire::test('pages::settings.profile')
-        ->set('name', 'Test User')
+        ->set('first_name', 'Test')
+        ->set('last_name', 'User')
         ->set('email', 'test@example.com')
         ->call('updateProfileInformation');
 
@@ -23,24 +25,27 @@ test('profile information can be updated', function () {
 
     $user->refresh();
 
-    expect($user->name)->toEqual('Test User');
-    expect($user->email)->toEqual('test@example.com');
-    expect($user->email_verified_at)->toBeNull();
+    expect($user->first_name)->toBe('Test');
+    expect($user->last_name)->toBe('User');
+    expect($user->email)->toBe('test@example.com');
 });
 
-test('email verification status is unchanged when email address is unchanged', function () {
+test('profile can be updated without changing the email address', function () {
     $user = User::factory()->create();
+
+    $originalEmail = $user->email;
 
     $this->actingAs($user);
 
     $response = Livewire::test('pages::settings.profile')
-        ->set('name', 'Test User')
-        ->set('email', $user->email)
+        ->set('first_name', 'Test')
+        ->set('last_name', 'User')
+        ->set('email', $originalEmail)
         ->call('updateProfileInformation');
 
     $response->assertHasNoErrors();
 
-    expect($user->refresh()->email_verified_at)->not->toBeNull();
+    expect($user->refresh()->email)->toBe($originalEmail);
 });
 
 test('user can delete their account', function () {

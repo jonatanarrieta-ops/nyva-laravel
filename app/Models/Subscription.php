@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Subscription extends Model
 {
+    public $timestamps = false;
+    use HasFactory;
+
     protected $fillable = [
         'establishment_id',
         'plan_id',
@@ -16,17 +20,11 @@ class Subscription extends Model
         'status',
     ];
 
-    /**
-     * @return BelongsTo<Establishment, Subscription>
-     */
     public function establishment(): BelongsTo
     {
         return $this->belongsTo(Establishment::class);
     }
 
-    /**
-     * @return BelongsTo<Plan, Subscription>
-     */
     public function plan(): BelongsTo
     {
         return $this->belongsTo(Plan::class);
@@ -37,7 +35,7 @@ class Subscription extends Model
         return [
             'start_date' => 'date',
             'end_date' => 'date',
-            'status' => 'boolean',
         ];
     }
 }
+

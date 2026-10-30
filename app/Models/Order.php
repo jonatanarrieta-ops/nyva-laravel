@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -9,6 +10,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
+    public $timestamps = false;
+    use HasFactory;
+
     protected $fillable = [
         'establishment_id',
         'customer_name',
@@ -19,25 +23,16 @@ class Order extends Model
         'ordered_at',
     ];
 
-    /**
-     * @return BelongsTo<Establishment, Order>
-     */
     public function establishment(): BelongsTo
     {
         return $this->belongsTo(Establishment::class);
     }
 
-    /**
-     * @return HasMany<OrderItem, Order>
-     */
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
     }
 
-    /**
-     * @return BelongsToMany<Product, Order>
-     */
     public function products(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'order_items')

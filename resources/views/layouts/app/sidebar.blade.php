@@ -10,13 +10,44 @@
                 <flux:sidebar.collapse class="lg:hidden" />
             </flux:sidebar.header>
 
+            
+            
             <flux:sidebar.nav>
-                <flux:sidebar.group :heading="__('Platform')" class="grid">
-                    <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                        {{ __('Dashboard') }}
+                <flux:sidebar.group heading="Principal" class="grid">
+                    <flux:sidebar.item
+                        icon="home"
+                        :href="route('dashboard')"
+                        :current="request()->routeIs('dashboard')"
+                        wire:navigate
+                    >
+                        Inicio
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+
+                <flux:sidebar.group heading="Gestión del negocio" class="grid">
+                    <flux:sidebar.item
+                        icon="building-storefront"
+                        :href="route('establishments.index')"
+                        :current="request()->routeIs('establishments.*')"
+                        wire:navigate
+                    >
+                        Establecimientos
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+
+                <flux:sidebar.group heading="Cuenta" class="grid">
+                    <flux:sidebar.item
+                        icon="cog-6-tooth"
+                        :href="route('profile.edit')"
+                        :current="request()->routeIs('profile.edit')"
+                        wire:navigate
+                    >
+                        Mi perfil
                     </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
+
+
 
             <flux:spacer />
 
@@ -30,7 +61,10 @@
                 </flux:sidebar.item>
             </flux:sidebar.nav>
 
-            <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />
+            <x-desktop-user-menu
+    		class="hidden lg:block"
+    		:name="trim(auth()->user()->first_name . ' ' . auth()->user()->last_name)"
+	    />
         </flux:sidebar>
 
         <!-- Mobile User Menu -->
@@ -50,12 +84,11 @@
                         <div class="p-0 text-sm font-normal">
                             <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
                                 <flux:avatar
-                                    :name="auth()->user()->name"
-                                    :initials="auth()->user()->initials()"
+                                    :name="trim(auth()->user()->first_name . ' ' . auth()->user()->last_name)"
                                 />
 
                                 <div class="grid flex-1 text-start text-sm leading-tight">
-                                    <flux:heading class="truncate">{{ auth()->user()->name }}</flux:heading>
+                                    <flux:heading class="truncate">{{ auth()->user()->first_name }} {{ auth()->user()->last_name }}</flux:heading>
                                     <flux:text class="truncate">{{ auth()->user()->email }}</flux:text>
                                 </div>
                             </div>
