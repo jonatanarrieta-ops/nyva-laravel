@@ -15,6 +15,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         $user = Auth::user();
 
+        if (! $user->isAdmin()) {
+            return redirect()->route('home');
+        }
+
         $establishmentIds = $user->establishments()->pluck('id');
 
         $establishmentCount = $establishmentIds->count();
@@ -82,7 +86,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 });
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'admin'])->group(function () {
 
     Route::livewire(
         'establishments',
@@ -111,8 +115,3 @@ Route::middleware(['auth'])->group(function () {
 });
 
 require __DIR__.'/settings.php';
-
-
-
-
-

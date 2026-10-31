@@ -41,9 +41,16 @@ use Illuminate\Support\Str;
 ])]
 class User extends Authenticatable
 {
+    public const ADMIN_ROLES = ['admin', 'platform_admin', 'establishment_admin'];
+
     public $timestamps = false;
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    public function isAdmin(): bool
+    {
+        return in_array($this->role, self::ADMIN_ROLES, true);
+    }
 
     /**
      * @return HasMany<Establishment, User>
@@ -51,6 +58,14 @@ class User extends Authenticatable
     public function establishments(): HasMany
     {
         return $this->hasMany(Establishment::class);
+    }
+
+    /**
+     * @return HasMany<Order, User>
+     */
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
     }
 
     /**

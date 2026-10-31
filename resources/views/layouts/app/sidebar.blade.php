@@ -24,6 +24,7 @@
 
             {{-- Navegación principal --}}
             <flux:sidebar.nav class="px-3">
+                @if (auth()->user()->isAdmin())
                 <flux:sidebar.group heading="PRINCIPAL" class="grid">
                     <flux:sidebar.item
                         icon="squares-2x2"
@@ -87,6 +88,13 @@
                     </flux:sidebar.item>
                 </flux:sidebar.group>
 
+                @endif
+
+                <flux:sidebar.group heading="CLIENTE" class="grid">
+                    <flux:sidebar.item icon="building-storefront" :href="route('home')" :current="request()->routeIs('home')" wire:navigate>
+                        Catálogo
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
                 <flux:sidebar.group heading="CUENTA" class="grid">
                     <flux:sidebar.item
                         icon="user"
@@ -118,19 +126,6 @@
             </flux:sidebar.nav>
 
             <flux:spacer />
-
-            {{-- Recursos --}}
-            <flux:sidebar.nav class="px-3">
-                <flux:sidebar.group heading="RECURSOS" class="grid">
-                    <flux:sidebar.item
-                        icon="book-open"
-                        href="https://laravel.com/docs/starter-kits#livewire"
-                        target="_blank"
-                    >
-                        Documentación
-                    </flux:sidebar.item>
-                </flux:sidebar.group>
-            </flux:sidebar.nav>
 
             {{-- Usuario de escritorio --}}
             <x-desktop-user-menu

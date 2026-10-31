@@ -27,7 +27,7 @@ class CreateNewUser implements CreatesNewUsers
             'last_name' => $input['last_name'],
             'email' => $input['email'],
             'password' => $input['password'],
-            'role' => 'user',
+            'role' => 'customer',
             'status' => 'active',
             'registered_at' => now(),
         ]);
