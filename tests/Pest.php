@@ -48,3 +48,41 @@ function something()
 {
     // ..
 }
+
+/**
+ * Crea un administrador con un establecimiento, una categoría y un producto.
+ *
+ * @return array{0: App\Models\User, 1: App\Models\Establishment, 2: App\Models\Category, 3: App\Models\Product}
+ */
+function catalogFixture(array $productAttributes = []): array
+{
+    $admin = App\Models\User::factory()->create(['role' => 'establishment_admin']);
+
+    $establishment = App\Models\Establishment::create([
+        'user_id' => $admin->id,
+        'name' => 'Local de prueba',
+        'type' => 'restaurant',
+        'description' => 'Descripción de prueba',
+        'address' => 'Calle 1 # 2-3',
+        'phone' => '3001234567',
+        'email' => 'local@example.com',
+        'status' => 'active',
+    ]);
+
+    $category = App\Models\Category::create([
+        'establishment_id' => $establishment->id,
+        'name' => 'Hamburguesas',
+        'status' => 'active',
+    ]);
+
+    $product = App\Models\Product::create([
+        'category_id' => $category->id,
+        'name' => 'Hamburguesa clásica',
+        'price' => 25000,
+        'available' => true,
+        'status' => 'active',
+        ...$productAttributes,
+    ]);
+
+    return [$admin, $establishment, $category, $product];
+}

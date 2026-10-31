@@ -1,4 +1,3 @@
-
 <?php
 
 use App\Models\Category;
@@ -64,7 +63,7 @@ new #[Layout('layouts.app')]
             $this->establishmentId = (string) $category->establishment_id;
             $this->name = $category->name;
             $this->description = $category->description ?? '';
-            $this->status = (bool) $category->status;
+            $this->status = $category->status === 'active';
             $this->showForm = true;
         }
 
@@ -79,13 +78,13 @@ new #[Layout('layouts.app')]
         {
             $validated = $this->validate([
                 'establishmentId' => ['required', 'integer'],
-                'name' => ['required', 'string', 'max:255'],
+                'name' => ['required', 'string', 'max:100'],
                 'description' => ['nullable', 'string', 'max:5000'],
                 'status' => ['required', 'boolean'],
             ], [
                 'establishmentId.required' => 'Selecciona un establecimiento.',
                 'name.required' => 'El nombre de la categoría es obligatorio.',
-                'name.max' => 'El nombre no puede superar los 255 caracteres.',
+                'name.max' => 'El nombre no puede superar los 100 caracteres.',
             ]);
 
             $establishment = Auth::user()
@@ -106,7 +105,7 @@ new #[Layout('layouts.app')]
                 'establishment_id' => $establishment->id,
                 'name' => trim($validated['name']),
                 'description' => trim($validated['description'] ?? '') ?: null,
-                'status' => $validated['status'],
+                'status' => $validated['status'] ? 'active' : 'inactive',
             ];
 
             if ($this->categoryId !== null) {
@@ -274,7 +273,7 @@ new #[Layout('layouts.app')]
                             id="name"
                             type="text"
                             wire:model="name"
-                            maxlength="255"
+                            maxlength="100"
                             placeholder="Ej. Bebidas, Postres, Entradas"
                             class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
                         >
@@ -448,7 +447,7 @@ new #[Layout('layouts.app')]
                                 </td>
 
                                 <td class="px-5 py-4">
-                                    @if ($category->status)
+                                    @if ($category->status === 'active')
                                         <span class="inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
                                             Activa
                                         </span>

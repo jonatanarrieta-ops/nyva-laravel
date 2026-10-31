@@ -82,7 +82,7 @@ new #[Layout('layouts.app')]
             $this->description = $product->description ?? '';
             $this->price = (string) $product->price;
             $this->available = (bool) $product->available;
-            $this->status = (bool) $product->status;
+            $this->status = $product->status === 'active';
             $this->showForm = true;
         }
 
@@ -97,7 +97,7 @@ new #[Layout('layouts.app')]
         {
             $validated = $this->validate([
                 'categoryId' => ['required', 'integer'],
-                'name' => ['required', 'string', 'max:255'],
+                'name' => ['required', 'string', 'max:150'],
                 'description' => ['nullable', 'string', 'max:5000'],
                 'price' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
                 'available' => ['required', 'boolean'],
@@ -127,7 +127,7 @@ new #[Layout('layouts.app')]
                 'description' => trim($validated['description'] ?? '') ?: null,
                 'price' => $validated['price'],
                 'available' => $validated['available'],
-                'status' => $validated['status'],
+                'status' => $validated['status'] ? 'active' : 'inactive',
             ];
 
             if ($this->productId !== null) {
@@ -276,7 +276,7 @@ new #[Layout('layouts.app')]
                             id="name"
                             type="text"
                             wire:model="name"
-                            maxlength="255"
+                            maxlength="150"
                             class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-950"
                         />
                         @error('name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
@@ -414,7 +414,7 @@ new #[Layout('layouts.app')]
                                 @endif
                             </td>
                             <td class="px-3 py-3">
-                                @if ($product->status)
+                                @if ($product->status === 'active')
                                     <span class="text-emerald-600">Activo</span>
                                 @else
                                     <span class="text-zinc-500">Inactivo</span>
