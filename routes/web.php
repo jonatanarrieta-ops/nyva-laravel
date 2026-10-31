@@ -39,6 +39,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->where('status', 'pending')
             ->count();
 
+        $orderStatusCounts = (clone $orders)
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $today = now()->toDateString();
+
+        $ordersToday = (clone $orders)
+            ->whereDate('ordered_at', $today)
+            ->count();
+
+        $salesToday = (clone $orders)
+            ->whereDate('ordered_at', $today)
+            ->whereNotIn('status', ['cancelled'])
+            ->sum('total');
+
+        $recentOrders = (clone $orders)
+            ->with('establishment')
+            ->orderByDesc('ordered_at')
+            ->limit(5)
+            ->get();
+
         $subscriptions = Subscription::with('plan')
             ->whereIn('establishment_id', $establishmentIds)
             ->orderByDesc('start_date')
@@ -50,6 +72,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'productCount',
             'orderCount',
             'pendingOrderCount',
+            'orderStatusCounts',
+            'ordersToday',
+            'salesToday',
+            'recentOrders',
             'subscriptions'
         ));
     })->name('dashboard');
@@ -74,12 +100,18 @@ Route::middleware(['auth'])->group(function () {
 
     Route::livewire(
         'orders',
-        'pages::orders.index'
+        'orders.index'
     )->name('orders.index');
+
+    Route::livewire(
+        'reports',
+        'pages::reports.index'
+    )->name('reports.index');
 
 });
 
 require __DIR__.'/settings.php';
+
 
 
 

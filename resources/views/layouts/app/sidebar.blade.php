@@ -1,6 +1,6 @@
 ﻿
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         @include('partials.head')
     </head>
@@ -22,7 +22,7 @@
                 <flux:sidebar.collapse class="lg:hidden" />
             </flux:sidebar.header>
 
-            {{-- NavegaciÃ³n principal --}}
+            {{-- NavegaciÃƒÂ³n principal --}}
             <flux:sidebar.nav class="px-3">
                 <flux:sidebar.group heading="PRINCIPAL" class="grid">
                     <flux:sidebar.item
@@ -36,7 +36,7 @@
                 </flux:sidebar.group>
 
                 <flux:sidebar.group
-                    heading="GESTIÃ“N DEL NEGOCIO"
+                    heading="GESTIÃƒâ€œN DEL NEGOCIO"
                     class="grid"
                     expandable
                     expanded
@@ -56,7 +56,7 @@
                         :current="request()->routeIs('categories.*')"
                         wire:navigate
                     >
-                        Categorías
+                        CategorÃ­as
                     </flux:sidebar.item>
 
                     <flux:sidebar.item
@@ -66,6 +66,24 @@
                         wire:navigate
                     >
                         Productos
+                    </flux:sidebar.item>
+
+                    <flux:sidebar.item
+                        icon="shopping-bag"
+                        :href="route('orders.index')"
+                        :current="request()->routeIs('orders.*')"
+                        wire:navigate
+                    >
+                        Pedidos
+                    </flux:sidebar.item>
+
+                    <flux:sidebar.item
+                        icon="chart-bar"
+                        :href="route('reports.index')"
+                        :current="request()->routeIs('reports.*')"
+                        wire:navigate
+                    >
+                        Reportes
                     </flux:sidebar.item>
                 </flux:sidebar.group>
 
@@ -109,7 +127,7 @@
                         href="https://laravel.com/docs/starter-kits#livewire"
                         target="_blank"
                     >
-                        DocumentaciÃ³n
+                        DocumentaciÃƒÂ³n
                     </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
@@ -121,7 +139,7 @@
             />
         </flux:sidebar>
 
-        {{-- Cabecera mÃ³vil --}}
+        {{-- Cabecera mÃƒÂ³vil --}}
         <flux:header class="lg:hidden">
             <flux:sidebar.toggle
                 class="lg:hidden"
@@ -196,14 +214,14 @@
                             class="w-full cursor-pointer"
                             data-test="logout-button"
                         >
-                            Cerrar sesiÃ³n
+                            Cerrar sesiÃƒÂ³n
                         </flux:menu.item>
                     </form>
                 </flux:menu>
             </flux:dropdown>
         </flux:header>
 
-        {{-- Contenido de la pÃ¡gina --}}
+        {{-- Contenido de la pÃƒÂ¡gina --}}
         {{ $slot }}
 
         @persist('toast')
@@ -215,6 +233,7 @@
         @fluxScripts
     </body>
 </html>
+
 
 
 

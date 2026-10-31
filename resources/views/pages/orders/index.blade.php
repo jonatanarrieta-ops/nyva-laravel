@@ -1,7 +1,10 @@
-﻿<?php
+<?php
 
+use App\Models\Establishment;
 use App\Models\Order;
+use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\WithPagination;
@@ -11,243 +14,827 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
     use WithPagination;
 
     public string $search = '';
-    public string $filterEstablishment = '';
-    public string $filterStatus = '';
+    public string $establishmentFilter = '';
+    public string $statusFilter = '';
 
+    public bool $showCreateForm = false;
     public ?int $selectedOrderId = null;
 
-    public function updatedSearch(): void
+    public ?int $establishment_id = null;
+    public string $customer_name = '';
+    public string $customer_phone = '';
+    public string $delivery_address = '';
+
+    public array $cart = [];
+
+    public function updatingSearch(): void
     {
         $this->resetPage();
     }
 
-    public function updatedFilterEstablishment(): void
+    public function updatingEstablishmentFilter(): void
     {
         $this->resetPage();
     }
 
-    public function updatedFilterStatus(): void
+    public function updatingStatusFilter(): void
     {
         $this->resetPage();
     }
 
-    public function toggleDetails(int $id): void
+    public function openCreateForm(): void
     {
-        $order = $this->ownedOrders()->whereKey($id)->firstOrFail();
+        $this->resetValidation();
 
-        $this->selectedOrderId = $this->selectedOrderId === $order->id
-            ? null
-            : $order->id;
+        $this->showCreateForm = true;
+        $this->selectedOrderId = null;
+
+        $this->establishment_id = null;
+        $this->customer_name = '';
+        $this->customer_phone = '';
+        $this->delivery_address = '';
+        $this->cart = [];
     }
 
-    private function ownedOrders()
+    public function closeCreateForm(): void
     {
-        return Order::query()
+        $this->resetValidation();
+
+        $this->showCreateForm = false;
+
+        $this->establishment_id = null;
+        $this->customer_name = '';
+        $this->customer_phone = '';
+        $this->delivery_address = '';
+        $this->cart = [];
+    }
+
+    public function updatedEstablishmentId(): void
+    {
+        $this->cart = [];
+    }
+
+    public function addProduct(int $productId): void
+    {
+        $product = $this->availableProducts()
+            ->firstWhere('id', $productId);
+
+        if (!$product) {
+            return;
+        }
+
+        if (isset($this->cart[$productId])) {
+            $this->cart[$productId]['quantity']++;
+            return;
+        }
+
+        $this->cart[$productId] = [
+            'product_id' => $product->id,
+            'name' => $product->name,
+            'price' => (float) $product->price,
+            'quantity' => 1,
+        ];
+    }
+
+    public function increaseQuantity(int $productId): void
+    {
+        if (isset($this->cart[$productId])) {
+            $this->cart[$productId]['quantity']++;
+        }
+    }
+
+    public function decreaseQuantity(int $productId): void
+    {
+        if (!isset($this->cart[$productId])) {
+            return;
+        }
+
+        if ($this->cart[$productId]['quantity'] <= 1) {
+            unset($this->cart[$productId]);
+            return;
+        }
+
+        $this->cart[$productId]['quantity']--;
+    }
+
+    public function removeProduct(int $productId): void
+    {
+        unset($this->cart[$productId]);
+    }
+
+    public function getCartTotalProperty(): float
+    {
+        return collect($this->cart)->sum(function ($item) {
+            return ((float) $item['price']) * ((int) $item['quantity']);
+        });
+    }
+
+    public function saveOrder(): void
+    {
+        $this->validate([
+            'establishment_id' => ['required', 'integer'],
+            'customer_name' => ['required', 'string', 'max:255'],
+            'customer_phone' => ['required', 'string', 'max:50'],
+            'delivery_address' => ['nullable', 'string', 'max:500'],
+        ], [
+            'establishment_id.required' => 'Selecciona un establecimiento.',
+            'customer_name.required' => 'El nombre del cliente es obligatorio.',
+            'customer_phone.required' => 'El teléfono del cliente es obligatorio.',
+        ]);
+
+        if (empty($this->cart)) {
+            $this->addError('cart', 'Debes agregar al menos un producto al pedido.');
+            return;
+        }
+
+        $establishment = $this->userEstablishments()
+            ->whereKey($this->establishment_id)
+            ->first();
+
+        if (!$establishment) {
+            $this->addError('establishment_id', 'El establecimiento seleccionado no es válido.');
+            return;
+        }
+
+        $productIds = collect($this->cart)
+            ->pluck('product_id')
+            ->map(fn ($id) => (int) $id)
+            ->values();
+
+        $validProductIds = Product::query()
+            ->whereIn('id', $productIds)
+            ->whereHas('category', function ($query) use ($establishment) {
+                $query->where('establishment_id', $establishment->id);
+            })
+            ->pluck('id');
+
+        if ($validProductIds->count() !== $productIds->count()) {
+            $this->addError('cart', 'Uno o más productos no pertenecen al establecimiento seleccionado.');
+            return;
+        }
+
+        DB::transaction(function () use ($establishment) {
+            $order = Order::create([
+                'establishment_id' => $establishment->id,
+                'customer_name' => $this->customer_name,
+                'customer_phone' => $this->customer_phone,
+                'delivery_address' => $this->delivery_address ?: null,
+                'total' => $this->cartTotal,
+                'status' => 'pending',
+                'ordered_at' => now(),
+            ]);
+
+            foreach ($this->cart as $item) {
+                $quantity = (int) $item['quantity'];
+                $unitPrice = (float) $item['price'];
+                $subtotal = $unitPrice * $quantity;
+
+                $order->orderItems()->create([
+                    'product_id' => $item['product_id'],
+                    'quantity' => $quantity,
+                    'unit_price' => $unitPrice,
+                    'subtotal' => $subtotal,
+                ]);
+            }
+        });
+
+        session()->flash('success', 'Pedido creado correctamente.');
+
+        $this->closeCreateForm();
+        $this->resetPage();
+    }
+
+    public function updateStatus(int $orderId, string $status): void
+    {
+        $allowedTransitions = [
+            'pending' => ['confirmed', 'cancelled'],
+            'confirmed' => ['preparing', 'cancelled'],
+            'preparing' => ['shipped', 'cancelled'],
+            'shipped' => ['delivered'],
+            'delivered' => [],
+            'cancelled' => [],
+        ];
+
+        $order = Order::query()
+            ->whereKey($orderId)
             ->whereHas('establishment', function ($query) {
                 $query->where('user_id', Auth::id());
-            });
+            })
+            ->firstOrFail();
+
+        $nextStatuses = $allowedTransitions[$order->status] ?? [];
+
+        if (!in_array($status, $nextStatuses, true)) {
+            session()->flash('error', 'No se permite ese cambio de estado.');
+            return;
+        }
+
+        $order->update([
+            'status' => $status,
+        ]);
+
+        session()->flash('success', 'Estado del pedido actualizado correctamente.');
+    }
+    public function mount(): void
+    {
+        $orderId = request()->query('order');
+
+        if ($orderId && ctype_digit((string) $orderId)) {
+            $order = Order::query()
+                ->whereKey((int) $orderId)
+                ->whereHas('establishment', function ($query) {
+                    $query->where('user_id', Auth::id());
+                })
+                ->exists();
+
+            if ($order) {
+                $this->selectedOrderId = (int) $orderId;
+            }
+        }
+    }
+
+    public function toggleDetails(int $orderId): void
+    {
+        $this->selectedOrderId = $this->selectedOrderId === $orderId
+            ? null
+            : $orderId;
+    }
+
+    private function userEstablishments()
+    {
+        return Establishment::query()
+            ->where('user_id', Auth::id());
+    }
+
+    private function availableProducts()
+    {
+        if (!$this->establishment_id) {
+            return collect();
+        }
+
+        return Product::query()
+            ->with('category')
+            ->where('available', true)
+            ->whereHas('category', function ($query) {
+                $query->where('establishment_id', $this->establishment_id);
+            })
+            ->orderBy('name')
+            ->get();
     }
 
     public function with(): array
     {
-        $orders = $this->ownedOrders()
-            ->with(['establishment', 'orderItems.product'])
-            ->when($this->search !== '', function ($query) {
-                $search = '%' . $this->search . '%';
-
-                $query->where(function ($subquery) use ($search) {
-                    $subquery->where('customer_name', 'like', $search)
-                        ->orWhere('customer_phone', 'like', $search);
-                });
-            })
-            ->when($this->filterEstablishment !== '', function ($query) {
-                $query->where('establishment_id', $this->filterEstablishment);
-            })
-            ->when($this->filterStatus !== '', function ($query) {
-                $query->where('status', $this->filterStatus);
-            })
-            ->orderByDesc('ordered_at')
-            ->paginate(10);
-
-        $establishments = Auth::user()
-            ->establishments()
+        $establishments = $this->userEstablishments()
             ->orderBy('name')
             ->get();
 
-        $selectedOrder = $this->selectedOrderId
-            ? $this->ownedOrders()
-                ->with(['establishment', 'orderItems.product'])
-                ->whereKey($this->selectedOrderId)
-                ->first()
-            : null;
+        $orders = Order::query()
+            ->with([
+                'establishment',
+                'orderItems.product',
+            ])
+            ->whereHas('establishment', function ($query) {
+                $query->where('user_id', Auth::id());
+            })
+            ->when($this->search !== '', function ($query) {
+                $search = '%' . $this->search . '%';
 
-        return compact('orders', 'establishments', 'selectedOrder');
+                $query->where(function ($q) use ($search) {
+                    $q->where('customer_name', 'like', $search)
+                        ->orWhere('customer_phone', 'like', $search);
+                });
+            })
+            ->when($this->establishmentFilter !== '', function ($query) {
+                $query->where('establishment_id', $this->establishmentFilter);
+            })
+            ->when($this->statusFilter !== '', function ($query) {
+                $query->where('status', $this->statusFilter);
+            })
+            ->latest('ordered_at')
+            ->paginate(10);
+
+        $availableProducts = $this->availableProducts();
+
+        return [
+            'establishments' => $establishments,
+            'orders' => $orders,
+            'availableProducts' => $availableProducts,
+        ];
     }
 };
 ?>
 
-<div class="flex flex-col gap-6 p-4 md:p-6">
-    <div>
-        <h1 class="text-2xl font-semibold tracking-tight">Pedidos</h1>
-        <p class="mt-1 text-sm text-zinc-500">
-            Consulta los pedidos de tus establecimientos.
-        </p>
+<div class="space-y-6">
+
+    @if (session('success'))
+        <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Pedidos</h1>
+            <p class="mt-1 text-sm text-gray-500">
+                Administra y registra los pedidos de tus establecimientos.
+            </p>
+        </div>
+
+        <button
+            type="button"
+            wire:click="openCreateForm"
+            class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+        >
+            + Nuevo pedido
+        </button>
     </div>
 
-    <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
-        <div class="md:col-span-1">
-            <label for="orderSearch" class="mb-1 block text-sm font-medium">Buscar cliente</label>
-            <input
-                id="orderSearch"
-                type="search"
-                wire:model.live.debounce.300ms="search"
-                placeholder="Nombre o teléfono"
-                class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-            >
-        </div>
+    @if ($showCreateForm)
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div class="mb-6 flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900">Nuevo pedido</h2>
+                    <p class="text-sm text-gray-500">
+                        Registra los datos del cliente y agrega los productos.
+                    </p>
+                </div>
 
-        <div>
-            <label for="orderEstablishment" class="mb-1 block text-sm font-medium">Establecimiento</label>
-            <select
-                id="orderEstablishment"
-                wire:model.live="filterEstablishment"
-                class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-            >
-                <option value="">Todos los establecimientos</option>
-                @foreach ($establishments as $establishment)
-                    <option value="{{ $establishment->id }}">{{ $establishment->name }}</option>
-                @endforeach
-            </select>
-        </div>
+                <button
+                    type="button"
+                    wire:click="closeCreateForm"
+                    class="text-sm font-medium text-gray-500 hover:text-gray-700"
+                >
+                    Cancelar
+                </button>
+            </div>
 
-        <div>
-            <label for="orderStatus" class="mb-1 block text-sm font-medium">Estado</label>
-            <select
-                id="orderStatus"
-                wire:model.live="filterStatus"
-                class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-            >
-                <option value="">Todos los estados</option>
-                <option value="pending">Pendiente</option>
-                <option value="confirmed">Confirmado</option>
-                <option value="preparing">En preparación</option>
-                <option value="ready">Listo</option>
-                <option value="completed">Completado</option>
-                <option value="cancelled">Cancelado</option>
-            </select>
-        </div>
-    </div>
+            <div class="grid gap-4 md:grid-cols-2">
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700">
+                        Establecimiento
+                    </label>
 
-    <div class="overflow-x-auto rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
-        <table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-700">
-            <thead class="bg-zinc-50 text-left dark:bg-zinc-800">
-                <tr>
-                    <th class="px-4 py-3 font-medium">Pedido</th>
-                    <th class="px-4 py-3 font-medium">Cliente</th>
-                    <th class="px-4 py-3 font-medium">Establecimiento</th>
-                    <th class="px-4 py-3 font-medium">Fecha</th>
-                    <th class="px-4 py-3 font-medium">Total</th>
-                    <th class="px-4 py-3 font-medium">Estado</th>
-                    <th class="px-4 py-3 text-right font-medium">Detalle</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
-                @forelse ($orders as $order)
-                    <tr wire:key="order-{{ $order->id }}">
-                        <td class="whitespace-nowrap px-4 py-3">#{{ $order->id }}</td>
-                        <td class="px-4 py-3">
-                            <div class="font-medium">{{ $order->customer_name }}</div>
-                            <div class="text-xs text-zinc-500">{{ $order->customer_phone }}</div>
-                        </td>
-                        <td class="px-4 py-3">{{ $order->establishment->name }}</td>
-                        <td class="whitespace-nowrap px-4 py-3">
-                            {{ $order->ordered_at?->format('d/m/Y H:i') ?? '—' }}
-                        </td>
-                        <td class="whitespace-nowrap px-4 py-3">
-                            ${{ number_format((float) $order->total, 2, ',', '.') }}
-                        </td>
-                        <td class="px-4 py-3">
-                            @php
-                                $statusLabels = [
-                                    'pending' => 'Pendiente',
-                                    'confirmed' => 'Confirmado',
-                                    'preparing' => 'En preparación',
-                                    'ready' => 'Listo',
-                                    'completed' => 'Completado',
-                                    'cancelled' => 'Cancelado',
-                                ];
-                            @endphp
-                            <span class="inline-flex rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
-                                {{ $statusLabels[$order->status] ?? ucfirst($order->status) }}
+                    <select
+                        wire:model.live="establishment_id"
+                        class="w-full rounded-lg border border-gray-400 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-indigo-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                    >
+                        <option value="">Selecciona un establecimiento</option>
+
+                        @foreach ($establishments as $establishment)
+                            <option value="{{ $establishment->id }}">
+                                {{ $establishment->name }}
+                            </option>
+                        @endforeach
+                    </select>
+
+                    @error('establishment_id')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700">
+                        Nombre del cliente
+                    </label>
+
+                    <input
+                        type="text"
+                        wire:model="customer_name"
+                        class="w-full rounded-lg border border-gray-400 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-indigo-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                        placeholder="Ej. Juan Pérez"
+                    >
+
+                    @error('customer_name')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700">
+                        Teléfono
+                    </label>
+
+                    <input
+                        type="text"
+                        wire:model="customer_phone"
+                        class="w-full rounded-lg border border-gray-400 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-indigo-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                        placeholder="Ej. 3001234567"
+                    >
+
+                    @error('customer_phone')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700">
+                        Dirección de entrega
+                    </label>
+
+                    <input
+                        type="text"
+                        wire:model="delivery_address"
+                        class="w-full rounded-lg border border-gray-400 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-indigo-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                        placeholder="Ej. Calle 10 # 20-30"
+                    >
+
+                    @error('delivery_address')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+
+            <div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+                <div>
+                    <h3 class="mb-3 text-sm font-semibold text-gray-900">
+                        Productos disponibles
+                    </h3>
+
+                    @error('cart')
+                        <div class="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+                            {{ $message }}
+                        </div>
+                    @enderror
+
+                    @if (!$establishment_id)
+                        <div class="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
+                            Selecciona un establecimiento para ver sus productos.
+                        </div>
+                    @elseif ($availableProducts->isEmpty())
+                        <div class="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
+                            No hay productos disponibles para este establecimiento.
+                        </div>
+                    @else
+                        <div class="space-y-2">
+                            @foreach ($availableProducts as $product)
+                                <div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
+                                    <div class="min-w-0">
+                                        <p class="font-medium text-gray-900">
+                                            {{ $product->name }}
+                                        </p>
+
+                                        <p class="text-xs text-gray-500">
+                                            {{ $product->category?->name ?? 'Sin categoría' }}
+                                        </p>
+
+                                        <p class="mt-1 text-sm font-semibold text-gray-700">
+                                            ${{ number_format((float) $product->price, 0, ',', '.') }}
+                                        </p>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        wire:click="addProduct({{ $product->id }})"
+                                        class="ml-4 rounded-lg bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-200"
+                                    >
+                                        Agregar
+                                    </button>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
+                <div>
+                    <h3 class="mb-3 text-sm font-semibold text-gray-900">
+                        Pedido
+                    </h3>
+
+                    @if (empty($cart))
+                        <div class="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
+                            Todavía no has agregado productos.
+                        </div>
+                    @else
+                        <div class="space-y-3">
+                            @foreach ($cart as $item)
+                                <div class="rounded-lg border border-gray-200 p-3">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="min-w-0">
+                                            <p class="font-medium text-gray-900">
+                                                {{ $item['name'] }}
+                                            </p>
+
+                                            <p class="text-sm text-gray-500">
+                                                ${{ number_format((float) $item['price'], 0, ',', '.') }}
+                                                c/u
+                                            </p>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            wire:click="removeProduct({{ $item['product_id'] }})"
+                                            class="text-xs font-medium text-red-600 hover:text-red-700"
+                                        >
+                                            Quitar
+                                        </button>
+                                    </div>
+
+                                    <div class="mt-3 flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                wire:click="decreaseQuantity({{ $item['product_id'] }})"
+                                                class="h-8 w-8 rounded-lg bg-gray-100 text-sm font-bold text-gray-700 hover:bg-gray-200"
+                                            >
+                                                -
+                                            </button>
+
+                                            <span class="w-8 text-center text-sm font-semibold">
+                                                {{ $item['quantity'] }}
+                                            </span>
+
+                                            <button
+                                                type="button"
+                                                wire:click="increaseQuantity({{ $item['product_id'] }})"
+                                                class="h-8 w-8 rounded-lg bg-gray-100 text-sm font-bold text-gray-700 hover:bg-gray-200"
+                                            >
+                                                +
+                                            </button>
+                                        </div>
+
+                                        <span class="font-semibold text-gray-900">
+                                            ${{ number_format((float) $item['price'] * (int) $item['quantity'], 0, ',', '.') }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <div class="mt-4 flex items-center justify-between border-t border-gray-200 pt-4">
+                            <span class="font-semibold text-gray-900">Total</span>
+
+                            <span class="text-xl font-bold text-gray-900">
+                                ${{ number_format($this->cartTotal, 0, ',', '.') }}
                             </span>
-                        </td>
-                        <td class="px-4 py-3 text-right">
-                            <button
-                                type="button"
-                                wire:click="toggleDetails({{ $order->id }})"
-                                class="font-medium text-blue-600 hover:underline"
-                            >
-                                {{ $selectedOrderId === $order->id ? 'Ocultar' : 'Ver pedido' }}
-                            </button>
-                        </td>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3 border-t border-gray-200 pt-5">
+                <button
+                    type="button"
+                    wire:click="closeCreateForm"
+                    class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    type="button"
+                    wire:click="saveOrder"
+                    wire:loading.attr="disabled"
+                    class="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+                >
+                    <span wire:loading.remove wire:target="saveOrder">
+                        Crear pedido
+                    </span>
+
+                    <span wire:loading wire:target="saveOrder">
+                        Guardando...
+                    </span>
+                </button>
+            </div>
+        </div>
+    @endif
+
+    <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div class="grid gap-3 md:grid-cols-3">
+            <div>
+                <label class="mb-1 block text-xs font-medium text-gray-500">
+                    Buscar cliente
+                </label>
+
+                <input
+                    type="text"
+                    wire:model.live.debounce.400ms="search"
+                    placeholder="Nombre o teléfono"
+                    class="w-full rounded-lg border border-gray-400 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-indigo-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                >
+            </div>
+
+            <div>
+                <label class="mb-1 block text-xs font-medium text-gray-500">
+                    Establecimiento
+                </label>
+
+                <select
+                    wire:model.live="establishmentFilter"
+                    class="w-full rounded-lg border border-gray-400 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-indigo-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                >
+                    <option value="">Todos</option>
+
+                    @foreach ($establishments as $establishment)
+                        <option value="{{ $establishment->id }}">
+                            {{ $establishment->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="mb-1 block text-xs font-medium text-gray-500">
+                    Estado
+                </label>
+
+                <select
+                    wire:model.live="statusFilter"
+                    class="w-full rounded-lg border border-gray-400 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-indigo-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                >
+                    <option value="">Todos</option>
+                    <option value="pending">Pendiente</option>
+                    <option value="confirmed">Confirmado</option>
+                    <option value="preparing">Preparando</option>
+                    <option value="shipped">Enviado</option>
+                    <option value="delivered">Entregado</option>
+                    <option value="cancelled">Cancelado</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            Cliente
+                        </th>
+
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            Establecimiento
+                        </th>
+
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            Total
+                        </th>
+
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            Estado
+                        </th>
+
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            Fecha
+                        </th>
+
+                        <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            Acción
+                        </th>
                     </tr>
+                </thead>
 
-                    @if ($selectedOrderId === $order->id && $selectedOrder)
-                        <tr wire:key="order-detail-{{ $order->id }}">
-                            <td colspan="7" class="bg-zinc-50 px-4 py-4 dark:bg-zinc-800/50">
-                                <h3 class="mb-3 font-semibold">Detalle del pedido #{{ $order->id }}</h3>
-
-                                @if ($selectedOrder->delivery_address)
-                                    <p class="mb-3 text-sm">
-                                        <strong>Dirección:</strong> {{ $selectedOrder->delivery_address }}
-                                    </p>
-                                @endif
-
-                                <div class="overflow-x-auto">
-                                    <table class="min-w-full text-sm">
-                                        <thead>
-                                            <tr class="text-left text-zinc-500">
-                                                <th class="py-2 pr-4">Producto</th>
-                                                <th class="py-2 pr-4">Cantidad</th>
-                                                <th class="py-2 pr-4">Precio unitario</th>
-                                                <th class="py-2">Subtotal</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @forelse ($selectedOrder->orderItems as $item)
-                                                <tr class="border-t border-zinc-200 dark:border-zinc-700">
-                                                    <td class="py-2 pr-4">{{ $item->product?->name ?? 'Producto eliminado' }}</td>
-                                                    <td class="py-2 pr-4">{{ $item->quantity }}</td>
-                                                    <td class="py-2 pr-4">${{ number_format((float) $item->unit_price, 2, ',', '.') }}</td>
-                                                    <td class="py-2">${{ number_format((float) $item->subtotal, 2, ',', '.') }}</td>
-                                                </tr>
-                                            @empty
-                                                <tr>
-                                                    <td colspan="4" class="py-3 text-zinc-500">Este pedido no tiene productos registrados.</td>
-                                                </tr>
-                                            @endforelse
-                                        </tbody>
-                                    </table>
+                <tbody class="divide-y divide-gray-200">
+                    @forelse ($orders as $order)
+                        <tr>
+                            <td class="px-4 py-4">
+                                <div class="font-medium text-gray-900">
+                                    {{ $order->customer_name }}
                                 </div>
 
-                                <p class="mt-3 text-right font-semibold">
-                                    Total: ${{ number_format((float) $selectedOrder->total, 2, ',', '.') }}
-                                </p>
+                                <div class="text-sm text-gray-500">
+                                    {{ $order->customer_phone }}
+                                </div>
+                            </td>
+
+                            <td class="px-4 py-4 text-sm text-gray-700">
+                                {{ $order->establishment?->name ?? '—' }}
+                            </td>
+
+                            <td class="px-4 py-4 text-sm font-semibold text-gray-900">
+                                ${{ number_format((float) $order->total, 0, ',', '.') }}
+                            </td>
+
+                            <td class="px-4 py-4">
+                                @php
+                                    $statusLabels = [
+                                        'pending' => 'Pendiente',
+                                        'confirmed' => 'Confirmado',
+                                        'preparing' => 'Preparando',
+                                        'shipped' => 'Enviado',
+                                        'delivered' => 'Entregado',
+                                        'cancelled' => 'Cancelado',
+                                    ];
+
+                                    $statusLabel = $statusLabels[$order->status] ?? ucfirst($order->status);
+                                @endphp
+
+                                <div class="space-y-2">
+                                    <span class="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
+                                        {{ $statusLabel }}
+                                    </span>
+
+                                    @php
+                                        $nextStatuses = [
+                                            'pending' => [
+                                                'confirmed' => 'Confirmado',
+                                                'cancelled' => 'Cancelado',
+                                            ],
+                                            'confirmed' => [
+                                                'preparing' => 'Preparando',
+                                                'cancelled' => 'Cancelado',
+                                            ],
+                                            'preparing' => [
+                                                'shipped' => 'Enviado',
+                                                'cancelled' => 'Cancelado',
+                                            ],
+                                            'shipped' => [
+                                                'delivered' => 'Entregado',
+                                            ],
+                                            'delivered' => [],
+                                            'cancelled' => [],
+                                        ];
+
+                                        $availableTransitions = $nextStatuses[$order->status] ?? [];
+                                    @endphp
+
+                                    @if (count($availableTransitions) > 0)
+                                        <select
+                                            wire:change="updateStatus({{ $order->id }}, $event.target.value)"
+                                            class="block w-full rounded-lg border border-gray-400 bg-gray-50 px-2 py-2 text-xs text-gray-900 shadow-sm focus:border-indigo-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                                        >
+                                            <option value="">Cambiar estado...</option>
+                                            @foreach ($availableTransitions as $value => $label)
+                                                <option value="{{ $value }}">{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                    @endif
+                                </div>
+                            </td>
+
+                            <td class="px-4 py-4 text-sm text-gray-500">
+                                {{ $order->ordered_at?->format('d/m/Y H:i') ?? '—' }}
+                            </td>
+
+                            <td class="px-4 py-4 text-right">
+                                <button
+                                    type="button"
+                                    wire:click="toggleDetails({{ $order->id }})"
+                                    class="text-sm font-semibold text-indigo-600 hover:text-indigo-700"
+                                >
+                                    {{ $selectedOrderId === $order->id ? 'Ocultar' : 'Ver detalle' }}
+                                </button>
                             </td>
                         </tr>
-                    @endif
-                @empty
-                    <tr>
-                        <td colspan="7" class="px-4 py-10 text-center text-zinc-500">
-                            No se encontraron pedidos para los filtros seleccionados.
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
 
-    <div>
-        {{ $orders->links() }}
+                        @if ($selectedOrderId === $order->id)
+                            <tr>
+                                <td colspan="6" class="bg-gray-50 px-4 py-5">
+                                    <div class="grid gap-4 md:grid-cols-2">
+                                        <div>
+                                            <h3 class="mb-2 text-sm font-semibold text-gray-900">
+                                                Datos de entrega
+                                            </h3>
+
+                                            <p class="text-sm text-gray-600">
+                                                {{ $order->delivery_address ?: 'Sin dirección de entrega' }}
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <h3 class="mb-2 text-sm font-semibold text-gray-900">
+                                                Productos
+                                            </h3>
+
+                                            <div class="space-y-2">
+                                                @foreach ($order->orderItems as $item)
+                                                    <div class="flex justify-between gap-4 text-sm">
+                                                        <span class="text-gray-700">
+                                                            {{ $item->product?->name ?? 'Producto eliminado' }}
+                                                            × {{ $item->quantity }}
+                                                        </span>
+
+                                                        <span class="font-medium text-gray-900">
+                                                            ${{ number_format((float) $item->subtotal, 0, ',', '.') }}
+                                                        </span>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endif
+                    @empty
+                        <tr>
+                            <td colspan="6" class="px-4 py-10 text-center text-sm text-gray-500">
+                                No hay pedidos para mostrar.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        @if ($orders->hasPages())
+            <div class="border-t border-gray-200 px-4 py-3">
+                {{ $orders->links() }}
+            </div>
+        @endif
     </div>
 </div>
+
+
+
+
