@@ -22,7 +22,7 @@
                 <flux:sidebar.collapse class="lg:hidden" />
             </flux:sidebar.header>
 
-            {{-- NavegaciÃƒÂ³n principal --}}
+            {{-- Navegación principal --}}
             <flux:sidebar.nav class="px-3">
                 <flux:sidebar.group heading="PRINCIPAL" class="grid">
                     <flux:sidebar.item
@@ -36,7 +36,7 @@
                 </flux:sidebar.group>
 
                 <flux:sidebar.group
-                    heading="GESTIÃƒâ€œN DEL NEGOCIO"
+                    heading="GESTIÓN DEL NEGOCIO"
                     class="grid"
                     expandable
                     expanded
@@ -56,7 +56,7 @@
                         :current="request()->routeIs('categories.*')"
                         wire:navigate
                     >
-                        CategorÃ­as
+                        Categorías
                     </flux:sidebar.item>
 
                     <flux:sidebar.item
@@ -127,7 +127,7 @@
                         href="https://laravel.com/docs/starter-kits#livewire"
                         target="_blank"
                     >
-                        DocumentaciÃƒÂ³n
+                        Documentación
                     </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
@@ -139,7 +139,7 @@
             />
         </flux:sidebar>
 
-        {{-- Cabecera mÃƒÂ³vil --}}
+        {{-- Cabecera móvil --}}
         <flux:header class="lg:hidden">
             <flux:sidebar.toggle
                 class="lg:hidden"
@@ -214,14 +214,14 @@
                             class="w-full cursor-pointer"
                             data-test="logout-button"
                         >
-                            Cerrar sesiÃƒÂ³n
+                            Cerrar sesión
                         </flux:menu.item>
                     </form>
                 </flux:menu>
             </flux:dropdown>
         </flux:header>
 
-        {{-- Contenido de la pÃƒÂ¡gina --}}
+        {{-- Contenido de la página --}}
         {{ $slot }}
 
         @persist('toast')
