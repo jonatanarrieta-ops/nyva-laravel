@@ -8,7 +8,13 @@ use App\Models\Subscription;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome')->name('home');
+Route::livewire('/', 'pages::catalog.index')->name('home');
+Route::livewire('establecimientos/{establishment}', 'pages::catalog.show')->name('catalog.show');
+Route::livewire('carrito', 'pages::cart.index')->name('cart.index');
+
+Route::middleware('auth')->group(function () {
+    Route::get('checkout', fn () => redirect()->route('cart.index'))->name('checkout');
+});
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
