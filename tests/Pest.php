@@ -86,3 +86,20 @@ function catalogFixture(array $productAttributes = []): array
 
     return [$admin, $establishment, $category, $product];
 }
+
+/**
+ * Crea un pedido simple asociado a un establecimiento.
+ */
+function makeOrder(int $establishmentId, string $status = 'pending', ?int $userId = null): App\Models\Order
+{
+    return App\Models\Order::create([
+        'establishment_id' => $establishmentId,
+        'user_id' => $userId,
+        'customer_name' => 'Cliente',
+        'customer_phone' => '3000000000',
+        'delivery_address' => 'Calle de prueba',
+        'total' => 1000,
+        'status' => $status,
+        'ordered_at' => now(),
+    ]);
+}

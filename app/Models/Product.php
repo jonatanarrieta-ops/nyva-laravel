@@ -27,6 +27,13 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
+    public function isOrderable(): bool
+    {
+        return $this->available
+            && $this->status === 'active'
+            && $this->category?->status === 'active';
+    }
+
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);

@@ -1,10 +1,10 @@
 <?php
 
+use App\Actions\PlaceOrder;
 use App\Models\Establishment;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\WithPagination;
@@ -133,13 +133,14 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
     {
         $this->validate([
             'establishment_id' => ['required', 'integer'],
-            'customer_name' => ['required', 'string', 'max:255'],
-            'customer_phone' => ['required', 'string', 'max:50'],
-            'delivery_address' => ['nullable', 'string', 'max:500'],
+            'customer_name' => ['required', 'string', 'max:150'],
+            'customer_phone' => ['required', 'string', 'max:30'],
+            'delivery_address' => ['required', 'string', 'max:255'],
         ], [
             'establishment_id.required' => 'Selecciona un establecimiento.',
             'customer_name.required' => 'El nombre del cliente es obligatorio.',
             'customer_phone.required' => 'El teléfono del cliente es obligatorio.',
+            'delivery_address.required' => 'La dirección de entrega es obligatoria.',
         ]);
 
         if (empty($this->cart)) {
@@ -156,47 +157,17 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
             return;
         }
 
-        $productIds = collect($this->cart)
-            ->pluck('product_id')
-            ->map(fn ($id) => (int) $id)
-            ->values();
-
-        $validProductIds = Product::query()
-            ->whereIn('id', $productIds)
-            ->whereHas('category', function ($query) use ($establishment) {
-                $query->where('establishment_id', $establishment->id);
-            })
-            ->pluck('id');
-
-        if ($validProductIds->count() !== $productIds->count()) {
-            $this->addError('cart', 'Uno o más productos no pertenecen al establecimiento seleccionado.');
-            return;
-        }
-
-        DB::transaction(function () use ($establishment) {
-            $order = Order::create([
-                'establishment_id' => $establishment->id,
+        app(PlaceOrder::class)->handle(
+            $establishment->id,
+            collect($this->cart)->mapWithKeys(
+                fn ($item) => [$item['product_id'] => $item['quantity']]
+            )->all(),
+            [
                 'customer_name' => $this->customer_name,
                 'customer_phone' => $this->customer_phone,
-                'delivery_address' => $this->delivery_address ?: null,
-                'total' => $this->cartTotal,
-                'status' => 'pending',
-                'ordered_at' => now(),
-            ]);
-
-            foreach ($this->cart as $item) {
-                $quantity = (int) $item['quantity'];
-                $unitPrice = (float) $item['price'];
-                $subtotal = $unitPrice * $quantity;
-
-                $order->orderItems()->create([
-                    'product_id' => $item['product_id'],
-                    'quantity' => $quantity,
-                    'unit_price' => $unitPrice,
-                    'subtotal' => $subtotal,
-                ]);
-            }
-        });
+                'delivery_address' => $this->delivery_address,
+            ]
+        );
 
         session()->flash('success', 'Pedido creado correctamente.');
 
@@ -206,15 +177,6 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
 
     public function updateStatus(int $orderId, string $status): void
     {
-        $allowedTransitions = [
-            'pending' => ['confirmed', 'cancelled'],
-            'confirmed' => ['preparing', 'cancelled'],
-            'preparing' => ['shipped', 'cancelled'],
-            'shipped' => ['delivered'],
-            'delivered' => [],
-            'cancelled' => [],
-        ];
-
         $order = Order::query()
             ->whereKey($orderId)
             ->whereHas('establishment', function ($query) {
@@ -222,9 +184,7 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
             })
             ->firstOrFail();
 
-        $nextStatuses = $allowedTransitions[$order->status] ?? [];
-
-        if (!in_array($status, $nextStatuses, true)) {
+        if (! $order->canTransitionTo($status)) {
             session()->flash('error', 'No se permite ese cambio de estado.');
             return;
         }
@@ -275,6 +235,7 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
         return Product::query()
             ->with('category')
             ->where('available', true)
+            ->where('status', 'active')
             ->whereHas('category', function ($query) {
                 $query->where('establishment_id', $this->establishment_id);
             })
@@ -329,6 +290,12 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
     @if (session('success'))
         <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
             {{ session('success') }}
+        </div>
+    @endif
+
+    @if (session('error'))
+        <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {{ session('error') }}
         </div>
     @endif
 
@@ -707,46 +674,13 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
                             </td>
 
                             <td class="px-4 py-4">
-                                @php
-                                    $statusLabels = [
-                                        'pending' => 'Pendiente',
-                                        'confirmed' => 'Confirmado',
-                                        'preparing' => 'Preparando',
-                                        'shipped' => 'Enviado',
-                                        'delivered' => 'Entregado',
-                                        'cancelled' => 'Cancelado',
-                                    ];
-
-                                    $statusLabel = $statusLabels[$order->status] ?? ucfirst($order->status);
-                                @endphp
-
                                 <div class="space-y-2">
                                     <span class="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
-                                        {{ $statusLabel }}
+                                        {{ $order->statusLabel() }}
                                     </span>
 
                                     @php
-                                        $nextStatuses = [
-                                            'pending' => [
-                                                'confirmed' => 'Confirmado',
-                                                'cancelled' => 'Cancelado',
-                                            ],
-                                            'confirmed' => [
-                                                'preparing' => 'Preparando',
-                                                'cancelled' => 'Cancelado',
-                                            ],
-                                            'preparing' => [
-                                                'shipped' => 'Enviado',
-                                                'cancelled' => 'Cancelado',
-                                            ],
-                                            'shipped' => [
-                                                'delivered' => 'Entregado',
-                                            ],
-                                            'delivered' => [],
-                                            'cancelled' => [],
-                                        ];
-
-                                        $availableTransitions = $nextStatuses[$order->status] ?? [];
+                                        $availableTransitions = Order::TRANSITIONS[$order->status] ?? [];
                                     @endphp
 
                                     @if (count($availableTransitions) > 0)
@@ -755,8 +689,8 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
                                             class="block w-full rounded-lg border border-gray-400 bg-gray-50 px-2 py-2 text-xs text-gray-900 shadow-sm focus:border-indigo-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200"
                                         >
                                             <option value="">Cambiar estado...</option>
-                                            @foreach ($availableTransitions as $value => $label)
-                                                <option value="{{ $value }}">{{ $label }}</option>
+                                            @foreach ($availableTransitions as $value)
+                                                <option value="{{ $value }}">{{ Order::STATUS_LABELS[$value] }}</option>
                                             @endforeach
                                         </select>
                                     @endif
