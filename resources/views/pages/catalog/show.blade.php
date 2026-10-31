@@ -169,12 +169,12 @@ new #[Layout('layouts.public')] class extends Component {
                 <p class="-mt-2 mb-3 text-sm text-zinc-500">{{ $category->description }}</p>
             @endif
 
-            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($category->products as $product)
                     <article
                         wire:key="product-{{ $product->id }}"
                         @class([
-                            'flex flex-col overflow-hidden rounded-xl border bg-white shadow-sm',
+                            'flex min-w-0 flex-col overflow-hidden rounded-xl border bg-white shadow-sm',
                             'border-zinc-200' => $product->available,
                             'border-zinc-200 bg-zinc-50' => ! $product->available,
                         ])

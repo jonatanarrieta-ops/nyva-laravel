@@ -57,7 +57,7 @@ new #[Layout('layouts.public')] #[Title('Catálogo')] class extends Component {
             No se encontraron establecimientos.
         </div>
     @else
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             @foreach ($establishments as $establishment)
                 <a
                     href="{{ route('catalog.show', $establishment) }}"
