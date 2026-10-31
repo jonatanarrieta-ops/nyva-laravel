@@ -8,7 +8,7 @@
         <header class="border-b border-zinc-200 bg-white">
             <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 sm:px-6">
                 <a href="{{ route('home') }}" wire:navigate class="flex items-center gap-2 font-semibold">
-                    <span class="flex size-8 items-center justify-center rounded-md bg-accent-content text-accent-foreground">
+                    <span class="flex size-8 items-center justify-center rounded-md bg-indigo-700 text-white">
                         <x-app-logo-icon class="size-5 fill-current text-white" />
                     </span>
                     {{ config('app.name') }}

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 use App\Models\Establishment;
 use App\Models\Order;
