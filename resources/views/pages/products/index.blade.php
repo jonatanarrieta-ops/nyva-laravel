@@ -3,15 +3,18 @@
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
 new #[Layout('layouts.app')]
     #[Title('Productos')]
     class extends Component {
+        use WithFileUploads;
         use WithPagination;
 
         public string $search = '';
@@ -27,6 +30,8 @@ new #[Layout('layouts.app')]
         public string $price = '';
         public bool $available = true;
         public bool $status = true;
+        public $image = null;
+        public ?string $currentImage = null;
 
         public function updatedSearch(): void
         {
@@ -68,6 +73,8 @@ new #[Layout('layouts.app')]
             $this->price = '';
             $this->available = true;
             $this->status = true;
+            $this->image = null;
+            $this->currentImage = null;
             $this->showForm = true;
         }
 
@@ -83,6 +90,8 @@ new #[Layout('layouts.app')]
             $this->price = (string) $product->price;
             $this->available = (bool) $product->available;
             $this->status = $product->status === 'active';
+            $this->image = null;
+            $this->currentImage = $product->imageUrl();
             $this->showForm = true;
         }
 
@@ -100,6 +109,7 @@ new #[Layout('layouts.app')]
                 'name' => ['required', 'string', 'max:150'],
                 'description' => ['nullable', 'string', 'max:5000'],
                 'price' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
+                'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
                 'available' => ['required', 'boolean'],
                 'status' => ['required', 'boolean'],
             ], [
@@ -108,6 +118,9 @@ new #[Layout('layouts.app')]
                 'price.required' => 'El precio es obligatorio.',
                 'price.numeric' => 'El precio debe ser un número válido.',
                 'price.min' => 'El precio no puede ser negativo.',
+                'image.image' => 'El archivo debe ser una imagen.',
+                'image.mimes' => 'La imagen debe ser JPG, PNG o WEBP.',
+                'image.max' => 'La imagen no puede superar los 2 MB.',
             ]);
 
             $category = $this->ownedCategories()
@@ -130,9 +143,19 @@ new #[Layout('layouts.app')]
                 'status' => $validated['status'] ? 'active' : 'inactive',
             ];
 
+            if ($this->image) {
+                $data['image'] = $this->image->store('products', 'public');
+            }
+
             if ($this->productId !== null) {
                 $product = $this->ownedProducts()->findOrFail($this->productId);
+                $previousImage = $product->image;
                 $product->update($data);
+
+                if ($this->image) {
+                    $this->deleteStoredImage($previousImage);
+                }
+
                 $message = 'Producto actualizado correctamente.';
             } else {
                 Product::create($data);
@@ -141,6 +164,7 @@ new #[Layout('layouts.app')]
 
             $this->showForm = false;
             $this->productId = null;
+            $this->image = null;
             $this->resetPage();
             session()->flash('product-message', $message);
         }
@@ -157,10 +181,19 @@ new #[Layout('layouts.app')]
                 return;
             }
 
+            $image = $product->image;
             $product->delete();
+            $this->deleteStoredImage($image);
 
             session()->flash('product-message', 'Producto eliminado correctamente.');
             $this->resetPage();
+        }
+
+        private function deleteStoredImage(?string $path): void
+        {
+            if ($path && ! str_starts_with($path, 'http')) {
+                Storage::disk('public')->delete($path);
+            }
         }
 
         public function with(): array
@@ -304,6 +337,26 @@ new #[Layout('layouts.app')]
                             class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-950"
                         />
                         @error('price') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div>
+                        <label for="image" class="mb-1.5 block text-sm font-medium">
+                            Imagen <span class="font-normal text-zinc-400">(JPG, PNG o WEBP, máximo 2 MB)</span>
+                        </label>
+
+                        @if ($currentImage)
+                            <img src="{{ $currentImage }}" alt="Imagen actual" onerror="this.remove()" class="mb-2 size-20 rounded-lg object-cover">
+                        @endif
+
+                        <input
+                            id="image"
+                            type="file"
+                            wire:model="image"
+                            accept=".jpg,.jpeg,.png,.webp"
+                            class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                        />
+                        <p wire:loading wire:target="image" class="mt-1 text-sm text-zinc-500">Cargando imagen...</p>
+                        @error('image') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
 
                     <div class="flex flex-col gap-3 sm:flex-row sm:gap-6">
