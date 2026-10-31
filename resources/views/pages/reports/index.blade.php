@@ -128,7 +128,7 @@ new #[Layout('layouts.app')] #[Title('Reportes')] class extends Component {
 };
 ?>
 
-<div class="space-y-6 p-4 md:p-6">
+<div class="space-y-6 rounded-xl bg-gray-50 p-4 md:p-6">
     <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h1 class="text-2xl font-bold text-zinc-900">Estadísticas y reportes</h1>

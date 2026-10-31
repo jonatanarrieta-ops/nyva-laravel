@@ -285,7 +285,7 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
 };
 ?>
 
-<div class="space-y-6">
+<div class="space-y-6 rounded-xl bg-gray-50 p-4 md:p-6">
 
     @if (session('success'))
         <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
