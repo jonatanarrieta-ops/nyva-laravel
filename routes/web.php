@@ -13,7 +13,10 @@ Route::livewire('establecimientos/{establishment}', 'pages::catalog.show')->name
 Route::livewire('carrito', 'pages::cart.index')->name('cart.index');
 
 Route::middleware('auth')->group(function () {
-    Route::get('checkout', fn () => redirect()->route('cart.index'))->name('checkout');
+    Route::livewire('checkout', 'pages::checkout.index')->name('checkout');
+    Route::livewire('mis-pedidos', 'pages::my-orders.index')->name('my-orders.index');
+    Route::livewire('mis-pedidos/{order}', 'pages::my-orders.show')->name('my-orders.show');
+    Route::livewire('mis-pedidos/{order}/confirmacion', 'pages::my-orders.confirmation')->name('my-orders.confirmation');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
