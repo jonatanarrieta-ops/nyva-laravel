@@ -20,6 +20,7 @@ class Establishment extends Model
         'address',
         'phone',
         'email',
+        'registered_at',
         'status',
     ];
 
