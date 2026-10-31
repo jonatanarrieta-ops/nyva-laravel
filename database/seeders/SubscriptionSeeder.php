@@ -17,7 +17,7 @@ class SubscriptionSeeder extends Seeder
                 'billing_period' => 'monthly',
                 'start_date' => now(),
                 'end_date' => now()->addMonth(),
-                'status' => true,
+                'status' => 'active',
             ]);
 
         } catch (\Throwable $th) {

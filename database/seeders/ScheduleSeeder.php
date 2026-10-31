@@ -16,7 +16,7 @@ class ScheduleSeeder extends Seeder
                 'day_of_week' => 'Monday',
                 'opens_at' => '08:00:00',
                 'closes_at' => '18:00:00',
-                'status' => true,
+                'status' => 'active',
             ]);
 
         } catch (\Throwable $th) {

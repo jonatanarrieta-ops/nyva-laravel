@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
                 'email' => 'admin@nyva.com',
                 'password' => Hash::make('password'),
                 'role' => 'admin',
-                'status' => true,
+                'status' => 'active',
                 'registered_at' => now(),
             ]);
 

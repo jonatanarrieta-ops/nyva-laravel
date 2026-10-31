@@ -19,7 +19,7 @@ class EstablishmentSeeder extends Seeder
                 'address' => 'Sincelejo, Sucre',
                 'phone' => '3000000000',
                 'email' => 'contacto@nyva.com',
-                'status' => true,
+                'status' => 'active',
                 'registered_at' => now(),
             ]);
 

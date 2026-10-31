@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('orders', function (Blueprint $table) {
+        Schema::hasTable('orders') || Schema::create('orders', function (Blueprint $table) {
             $table->id();
 
             $table->foreignId('establishment_id')
@@ -22,9 +22,9 @@ return new class extends Migration
 
             $table->string('customer_phone');
 
-            $table->string('delivery_address')->nullable();
+            $table->string('delivery_address');
 
-            $table->decimal('total', 10, 2);
+            $table->decimal('total', 12, 2);
 
             $table->string('status')->default('pending');
 
