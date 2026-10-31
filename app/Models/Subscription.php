@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Subscription extends Model
 {
     public $timestamps = false;
+
     use HasFactory;
 
     protected $fillable = [
@@ -38,4 +39,3 @@ class Subscription extends Model
         ];
     }
 }
-

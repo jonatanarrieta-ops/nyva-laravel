@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class OrderItem extends Model
 {
     public $timestamps = false;
+
     use HasFactory;
 
     protected $fillable = [

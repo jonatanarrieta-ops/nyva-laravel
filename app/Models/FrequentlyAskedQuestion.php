@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class FrequentlyAskedQuestion extends Model
 {
     public $timestamps = false;
+
     use HasFactory;
 
     protected $fillable = [
@@ -29,4 +30,3 @@ class FrequentlyAskedQuestion extends Model
         ];
     }
 }
-

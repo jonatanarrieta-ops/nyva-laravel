@@ -3,6 +3,7 @@
 use App\Models\Category;
 use App\Models\Product;
 use App\Services\Cart;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Livewire\Livewire;
 
 test('the catalog home lists only active establishments', function () {
@@ -64,7 +65,7 @@ test('a product from another establishment cannot be added from this catalog', f
 
     expect(fn () => Livewire::test('pages::catalog.show', ['establishment' => $establishment])
         ->call('addToCart', $foreignProduct->id))
-        ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        ->toThrow(ModelNotFoundException::class);
 });
 
 test('the cart adds, changes quantities and calculates totals', function () {

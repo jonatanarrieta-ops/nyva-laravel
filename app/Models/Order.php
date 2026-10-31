@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Order extends Model
 {
     public $timestamps = false;
+
     use HasFactory;
 
     public const STATUS_LABELS = [

@@ -1,5 +1,10 @@
 <?php
 
+use App\Models\Category;
+use App\Models\Establishment;
+use App\Models\Order;
+use App\Models\Product;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -52,13 +57,13 @@ function something()
 /**
  * Crea un administrador con un establecimiento, una categoría y un producto.
  *
- * @return array{0: App\Models\User, 1: App\Models\Establishment, 2: App\Models\Category, 3: App\Models\Product}
+ * @return array{0: User, 1: Establishment, 2: Category, 3: Product}
  */
 function catalogFixture(array $productAttributes = []): array
 {
-    $admin = App\Models\User::factory()->create(['role' => 'establishment_admin']);
+    $admin = User::factory()->create(['role' => 'establishment_admin']);
 
-    $establishment = App\Models\Establishment::create([
+    $establishment = Establishment::create([
         'user_id' => $admin->id,
         'name' => 'Local de prueba',
         'type' => 'restaurant',
@@ -69,13 +74,13 @@ function catalogFixture(array $productAttributes = []): array
         'status' => 'active',
     ]);
 
-    $category = App\Models\Category::create([
+    $category = Category::create([
         'establishment_id' => $establishment->id,
         'name' => 'Hamburguesas',
         'status' => 'active',
     ]);
 
-    $product = App\Models\Product::create([
+    $product = Product::create([
         'category_id' => $category->id,
         'name' => 'Hamburguesa clásica',
         'price' => 25000,
@@ -90,9 +95,9 @@ function catalogFixture(array $productAttributes = []): array
 /**
  * Crea un pedido simple asociado a un establecimiento.
  */
-function makeOrder(int $establishmentId, string $status = 'pending', ?int $userId = null): App\Models\Order
+function makeOrder(int $establishmentId, string $status = 'pending', ?int $userId = null): Order
 {
-    return App\Models\Order::create([
+    return Order::create([
         'establishment_id' => $establishmentId,
         'user_id' => $userId,
         'customer_name' => 'Cliente',

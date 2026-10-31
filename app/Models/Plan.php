@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Plan extends Model
 {
     public $timestamps = false;
+
     use HasFactory;
 
     protected $fillable = [

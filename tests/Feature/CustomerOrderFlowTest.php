@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\PlaceOrder;
 use App\Models\Order;
 use App\Models\User;
 use App\Services\Cart;
@@ -107,7 +108,7 @@ test('a failure while saving items rolls the order back', function () {
     });
 
     try {
-        app(App\Actions\PlaceOrder::class)->handle($establishment->id, [$product->id => 1], [
+        app(PlaceOrder::class)->handle($establishment->id, [$product->id => 1], [
             'customer_name' => 'Ana',
             'customer_phone' => '3001234567',
             'delivery_address' => 'Calle 1',

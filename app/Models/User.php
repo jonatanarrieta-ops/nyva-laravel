@@ -44,6 +44,7 @@ class User extends Authenticatable
     public const ADMIN_ROLES = ['admin', 'platform_admin', 'establishment_admin'];
 
     public $timestamps = false;
+
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 

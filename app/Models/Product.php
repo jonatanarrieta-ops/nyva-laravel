@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 class Product extends Model
 {
     public $timestamps = false;
+
     use HasFactory;
 
     protected $fillable = [

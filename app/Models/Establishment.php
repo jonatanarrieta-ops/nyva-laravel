@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Establishment extends Model
 {
     public $timestamps = false;
+
     use HasFactory;
 
     protected $fillable = [
@@ -66,4 +67,3 @@ class Establishment extends Model
         return $this->hasMany(Conversation::class);
     }
 }
-
