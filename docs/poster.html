@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Póster NYVA</title>
+<style>
+    @page { size: A2 portrait; margin: 0; }
+    :root { --ink: #18181b; --muted: #52525b; --accent: #4338ca; --line: #e4e4e7; --tint: #eef2ff; }
+    * { box-sizing: border-box; margin: 0; }
+    body { background: #fff; color: var(--ink); font: 16px/1.5 "Segoe UI", system-ui, sans-serif; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .poster { max-width: 1120px; margin: 0 auto; padding: 48px; }
+    header { background: var(--accent); color: #fff; border-radius: 12px; padding: 40px; }
+    h1 { font-size: 44px; line-height: 1.15; }
+    header p { margin-top: 12px; font-size: 18px; }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-top: 24px; }
+    section { border: 1px solid var(--line); border-radius: 12px; padding: 24px; break-inside: avoid; }
+    .wide { grid-column: 1 / -1; background: var(--tint); }
+    h2 { color: var(--accent); font-size: 20px; margin-bottom: 8px; }
+    ol, ul { padding-left: 20px; }
+    li + li { margin-top: 4px; }
+    .phases { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 12px; }
+    .phases div { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 12px; font-size: 14px; }
+    .phases strong { display: block; color: var(--accent); }
+    footer { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 24px; border-top: 2px solid var(--accent); padding-top: 16px; font-size: 15px; }
+    footer strong { display: block; color: var(--accent); }
+    @media (max-width: 760px) {
+        .poster { padding: 16px; }
+        h1 { font-size: 30px; }
+        .grid, footer { grid-template-columns: 1fr; }
+        .phases { grid-template-columns: repeat(2, 1fr); }
+    }
+</style>
+</head>
+<body>
+<main class="poster">
+    <header>
+        <h1>NYVA: plataforma web para la gestión de establecimientos, productos y pedidos</h1>
+        <p>Proyecto de la asignatura Electiva Profesional II</p>
+    </header>
+
+    <div class="grid">
+        <section>
+            <h2>Introducción</h2>
+            <p>El presente proyecto propone el desarrollo de NYVA, una plataforma web orientada a la gestión de establecimientos comerciales, productos y pedidos. La aplicación busca centralizar y optimizar los procesos relacionados con la administración de establecimientos, organización de catálogos, registro y seguimiento de pedidos, permitiendo mejorar el control de la información y facilitar la toma de decisiones mediante herramientas tecnológicas.</p>
+        </section>
+
+        <section>
+            <h2>Objetivo general</h2>
+            <p>Desarrollar una plataforma web para la gestión de establecimientos, productos y pedidos, orientada a la optimización de los procesos administrativos y al seguimiento de las ventas mediante herramientas tecnológicas.</p>
+        </section>
+
+        <section>
+            <h2>Objetivos específicos</h2>
+            <ol>
+                <li>Analizar los requerimientos funcionales y no funcionales relacionados con la gestión de establecimientos, productos y pedidos.</li>
+                <li>Diseñar la estructura de la plataforma y la base de datos.</li>
+                <li>Desarrollar los módulos de establecimientos, categorías, productos y pedidos.</li>
+                <li>Implementar un panel de indicadores y un módulo de reportes.</li>
+                <li>Realizar pruebas funcionales para validar el funcionamiento de la plataforma.</li>
+            </ol>
+        </section>
+
+        <section>
+            <h2>Estado del arte</h2>
+            <p>Para el desarrollo de NYVA se tomaron como referencia diferentes soluciones de gestión comercial y plataformas web orientadas a la administración de productos y pedidos. Estas referencias permitieron identificar características relacionadas con la organización de catálogos, registro de pedidos, seguimiento de estados e indicadores de ventas. A partir de estas referencias se planteó una solución adaptada a las necesidades de gestión establecidas para el proyecto.</p>
+        </section>
+
+        <section class="wide">
+            <h2>Justificación</h2>
+            <p>NYVA busca mejorar la organización y el control de los procesos administrativos relacionados con establecimientos, productos y pedidos mediante una plataforma centralizada. La solución facilita el registro y consulta de información, el seguimiento de los pedidos y el análisis de las ventas mediante indicadores y reportes, contribuyendo a una gestión más organizada y eficiente.</p>
+        </section>
+
+        <section class="wide">
+            <h2>Metodología</h2>
+            <p>Se utilizó un enfoque de desarrollo iterativo y prototipado, construyendo progresivamente las funcionalidades de la plataforma y realizando validaciones durante cada etapa.</p>
+            <div class="phases">
+                <div><strong>Fase 1</strong>Análisis de requerimientos.</div>
+                <div><strong>Fase 2</strong>Diseño de la estructura de datos y de la interfaz.</div>
+                <div><strong>Fase 3</strong>Desarrollo e integración de los módulos.</div>
+                <div><strong>Fase 4</strong>Pruebas, correcciones y validación.</div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Resultados</h2>
+            <p>Como resultado se obtuvo una plataforma web funcional denominada NYVA, que permite gestionar establecimientos, categorías y productos, así como registrar y administrar pedidos. El sistema incorpora un flujo controlado para los diferentes estados de los pedidos, un panel principal con indicadores de operación y un módulo de reportes que permite consultar las ventas por periodo, los productos más vendidos y el comportamiento de los establecimientos. Además, los clientes pueden consultar el catálogo público, realizar pedidos desde un carrito de compras y hacer seguimiento a su estado.</p>
+        </section>
+
+        <section>
+            <h2>Conclusiones</h2>
+            <p>El proyecto permitió desarrollar una solución web orientada a mejorar la gestión de establecimientos, productos y pedidos. La integración de los diferentes módulos permitió centralizar la información y facilitar el seguimiento de las operaciones. Además, el desarrollo permitió aplicar conocimientos de ingeniería de sistemas y fortalecer competencias relacionadas con análisis, diseño, desarrollo, pruebas e integración de soluciones de software.</p>
+        </section>
+
+        <section class="wide">
+            <h2>Referencias</h2>
+            <ul>
+                <li>Laravel. Documentación oficial. https://laravel.com/docs</li>
+                <li>Livewire. Documentación oficial. https://livewire.laravel.com/docs</li>
+                <li>MariaDB. Documentación oficial. https://mariadb.com/kb</li>
+            </ul>
+        </section>
+    </div>
+
+    <footer>
+        <div><strong>Asignatura</strong>Electiva Profesional II · Semestre VIII · Jornada nocturna</div>
+        <div><strong>Docente</strong>Guillermo Antonio Gonzalez Marquez</div>
+        <div><strong>Integrantes</strong>Jorge Alberto Daza Hernandez<br>Jesus Alberto Carrillo Jaraba<br>Jonatan David Arrieta Escobar</div>
+    </footer>
+</main>
+</body>
+</html>
