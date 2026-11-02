@@ -40,12 +40,6 @@ class Plan extends Model
         'status',
     ];
 
-    /**
-
-     * @return HasMany<Subscription, $this>
-
-     */
-
     public function hasFeature(string $feature): bool
     {
         return in_array($feature, $this->features ?? [], true);

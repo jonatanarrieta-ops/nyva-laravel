@@ -42,12 +42,6 @@ class Schedule extends Model
         ];
     }
 
-    /**
-
-     * @return BelongsTo<Establishment, $this>
-
-     */
-
     public function dayLabel(): string
     {
         return self::DAYS[strtolower($this->day_of_week)] ?? $this->day_of_week;

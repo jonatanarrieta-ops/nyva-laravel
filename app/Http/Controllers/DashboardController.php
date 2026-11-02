@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\Subscription;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -75,7 +76,7 @@ class DashboardController extends Controller
     /**
      * Ventas no canceladas de los últimos días, incluidos los días sin ventas.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder<Order>  $orders
+     * @param  Builder<Order>  $orders
      * @return array<int, array{label: string, value: float}>
      */
     public static function salesByDay($orders, int $days = 7): array

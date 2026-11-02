@@ -17,7 +17,7 @@ class ImageStorage
 
     public function replace(UploadedFile $file, string $directory, ?string $previous = null): string
     {
-        $path = $file->store($directory, 'public');
+        $path = (string) $file->store($directory, 'public');
 
         $this->delete($previous);
 

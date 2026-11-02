@@ -20,7 +20,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Conversation extends Model
 {
-
     public $timestamps = false;
 
     protected $fillable = [
@@ -45,11 +44,8 @@ class Conversation extends Model
     }
 
     /**
-
      * @return BelongsTo<Establishment, $this>
-
      */
-
     public function establishment(): BelongsTo
     {
         return $this->belongsTo(Establishment::class);

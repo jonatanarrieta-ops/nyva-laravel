@@ -26,22 +26,16 @@ class Category extends Model
     ];
 
     /**
-
      * @return BelongsTo<Establishment, $this>
-
      */
-
     public function establishment(): BelongsTo
     {
         return $this->belongsTo(Establishment::class);
     }
 
     /**
-
      * @return HasMany<Product, $this>
-
      */
-
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);

@@ -61,21 +61,12 @@ class Order extends Model
     ];
 
     /**
-
      * @return BelongsTo<Establishment, $this>
-
      */
-
     public function establishment(): BelongsTo
     {
         return $this->belongsTo(Establishment::class);
     }
-
-    /**
-
-     * @return BelongsTo<User, $this>
-
-     */
 
     protected static function booted(): void
     {
@@ -84,6 +75,9 @@ class Order extends Model
         });
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -100,22 +94,16 @@ class Order extends Model
     }
 
     /**
-
      * @return HasMany<OrderItem, $this>
-
      */
-
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
     }
 
     /**
-
      * @return BelongsToMany<Product, $this>
-
      */
-
     public function products(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'order_items')

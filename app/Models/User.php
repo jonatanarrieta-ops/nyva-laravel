@@ -22,7 +22,7 @@ use Illuminate\Support\Str;
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string $role
- * @property bool $status
+ * @property string $status
  * @property Carbon $registered_at
  * @property string|null $remember_token
  * @property Carbon|null $created_at
@@ -101,7 +101,7 @@ class User extends Authenticatable
     }
 
     /**
-     * @return HasMany<Establishment, User>
+     * @return HasMany<Establishment, $this>
      */
     public function establishments(): HasMany
     {
@@ -109,7 +109,7 @@ class User extends Authenticatable
     }
 
     /**
-     * @return HasMany<Order, User>
+     * @return HasMany<Order, $this>
      */
     public function orders(): HasMany
     {

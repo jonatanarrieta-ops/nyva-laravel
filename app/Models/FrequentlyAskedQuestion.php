@@ -24,11 +24,8 @@ class FrequentlyAskedQuestion extends Model
     ];
 
     /**
-
      * @return BelongsTo<Establishment, $this>
-
      */
-
     public function establishment(): BelongsTo
     {
         return $this->belongsTo(Establishment::class);

@@ -31,22 +31,16 @@ class Subscription extends Model
     ];
 
     /**
-
      * @return BelongsTo<Establishment, $this>
-
      */
-
     public function establishment(): BelongsTo
     {
         return $this->belongsTo(Establishment::class);
     }
 
     /**
-
      * @return BelongsTo<Plan, $this>
-
      */
-
     public function plan(): BelongsTo
     {
         return $this->belongsTo(Plan::class);
