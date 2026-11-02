@@ -55,6 +55,109 @@
     }
 }
 
+@layer components {
+    .nyva-card {
+        @apply rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900;
+    }
+
+    .nyva-label {
+        @apply mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-200;
+    }
+
+    .nyva-input {
+        @apply w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 shadow-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:ring-indigo-900;
+    }
+
+    .nyva-error {
+        @apply mt-1 text-sm text-red-600 dark:text-red-400;
+    }
+
+    .nyva-btn {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-xs transition hover:bg-indigo-700 disabled:opacity-50;
+    }
+
+    .nyva-btn-secondary {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800;
+    }
+
+    .nyva-link {
+        @apply font-medium text-indigo-700 hover:underline dark:text-indigo-300;
+    }
+
+    .nyva-link-danger {
+        @apply font-medium text-red-600 hover:underline dark:text-red-400;
+    }
+
+    .nyva-table {
+        @apply w-full text-left text-sm;
+    }
+
+    .nyva-table thead {
+        @apply bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-800/60 dark:text-zinc-400;
+    }
+
+    .nyva-table th {
+        @apply px-4 py-3 font-semibold whitespace-nowrap;
+    }
+
+    .nyva-table td {
+        @apply border-t border-zinc-100 px-4 py-3 dark:border-zinc-800;
+    }
+
+    .nyva-alert-success {
+        @apply rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200;
+    }
+
+    .nyva-alert-error {
+        @apply rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200;
+    }
+
+    .nyva-alert-warning {
+        @apply rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200;
+    }
+}
+
+/* Las pantallas heredadas usan colores claros; dentro de los paneles se adaptan al modo oscuro. */
+.dark [data-flux-main] {
+    .bg-white {
+        background-color: var(--color-zinc-900);
+    }
+
+    .bg-gray-50,
+    .bg-zinc-50 {
+        background-color: var(--color-zinc-950);
+    }
+
+    .bg-gray-100,
+    .bg-zinc-100 {
+        background-color: var(--color-zinc-800);
+    }
+
+    .text-gray-900,
+    .text-zinc-900,
+    .text-gray-800,
+    .text-zinc-800 {
+        color: var(--color-white);
+    }
+
+    .text-gray-700,
+    .text-zinc-700,
+    .text-gray-600,
+    .text-zinc-600 {
+        color: var(--color-zinc-300);
+    }
+
+    .border-gray-200,
+    .border-zinc-200,
+    .border-gray-300,
+    .border-zinc-300,
+    .divide-gray-200 > *,
+    .divide-zinc-100 > *,
+    .divide-zinc-200 > * {
+        border-color: var(--color-zinc-700);
+    }
+}
+
 [data-flux-field]:not(ui-radio, ui-checkbox) {
     @apply grid gap-2;
 }

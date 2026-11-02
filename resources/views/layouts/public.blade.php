@@ -22,7 +22,7 @@
                     @auth
                         <a href="{{ route('my-orders.index') }}" wire:navigate class="hover:text-zinc-900">Mis pedidos</a>
 
-                        @if (auth()->user()->isAdmin())
+                        @if (auth()->user()->isPlatformAdmin() || auth()->user()->isEstablishmentUser())
                             <a href="{{ route('dashboard') }}" wire:navigate class="hover:text-zinc-900">Panel</a>
                         @endif
 
