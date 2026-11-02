@@ -5,7 +5,10 @@ namespace App\Actions;
 use App\Models\Establishment;
 use App\Models\Order;
 use App\Models\Product;
+use App\Notifications\NewOrderReceived;
+use App\Notifications\OrderConfirmed;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -23,8 +26,22 @@ class PlaceOrder
      *
      * @throws ValidationException
      */
-    public function handle(int $establishmentId, array $quantities, array $customer, ?int $userId = null): Order
-    {
+    public function handle(
+        int $establishmentId,
+        array $quantities,
+        array $customer,
+        ?int $userId = null,
+        string $channel = 'web',
+        ?string $idempotencyKey = null,
+    ): Order {
+        if ($idempotencyKey !== null) {
+            $existing = Order::where('idempotency_key', $idempotencyKey)->first();
+
+            if ($existing) {
+                return $existing;
+            }
+        }
+
         $customer = Validator::make($customer, [
             'customer_name' => ['required', 'string', 'max:150'],
             'customer_phone' => ['required', 'string', 'regex:'.self::PHONE_REGEX],
@@ -40,7 +57,7 @@ class PlaceOrder
 
         $quantities = $this->validQuantities($quantities);
 
-        return DB::transaction(function () use ($establishmentId, $quantities, $customer, $userId) {
+        $order = DB::transaction(function () use ($establishmentId, $quantities, $customer, $userId, $channel, $idempotencyKey) {
             $establishment = Establishment::query()
                 ->whereKey($establishmentId)
                 ->where('status', 'active')
@@ -48,6 +65,11 @@ class PlaceOrder
 
             if (! $establishment) {
                 $this->fail('El establecimiento no está disponible.');
+            }
+
+            // Los pedidos registrados desde el panel no dependen del horario público.
+            if ($channel !== 'panel' && ($reason = $establishment->orderBlockReason())) {
+                $this->fail($reason);
             }
 
             $products = Product::query()
@@ -82,6 +104,8 @@ class PlaceOrder
                 ...$customer,
                 'establishment_id' => $establishment->id,
                 'user_id' => $userId,
+                'channel' => $channel,
+                'idempotency_key' => $idempotencyKey,
                 'total' => round(array_sum(array_column($items, 'subtotal')), 2),
                 'status' => 'pending',
                 'ordered_at' => now(),
@@ -91,6 +115,11 @@ class PlaceOrder
 
             return $order;
         });
+
+        Notification::send($order->establishment->orderRecipients(), new NewOrderReceived($order));
+        $order->user?->notify(new OrderConfirmed($order));
+
+        return $order;
     }
 
     /**

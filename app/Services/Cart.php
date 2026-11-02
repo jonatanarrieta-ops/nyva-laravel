@@ -19,6 +19,8 @@ class Cart
 
     public const UNAVAILABLE = 'unavailable';
 
+    public const CLOSED = 'closed';
+
     public function establishmentId(): ?int
     {
         return session(self::SESSION_KEY.'.establishment_id');
@@ -41,8 +43,12 @@ class Cart
     {
         $product->loadMissing('category.establishment');
 
-        if (! $product->isOrderable() || $product->category->establishment->status !== 'active') {
+        if (! $product->isOrderable()) {
             return self::UNAVAILABLE;
+        }
+
+        if (! $product->category->establishment->canReceiveOrders()) {
+            return self::CLOSED;
         }
 
         $establishmentId = $product->category->establishment_id;
