@@ -181,6 +181,15 @@ test('inactive accounts cannot sign in', function () {
     $this->assertGuest();
 });
 
+test('an account deactivated during its session loses access', function () {
+    [$owner] = catalogFixture();
+    $admin = User::factory()->create(['role' => 'platform_admin', 'status' => 'inactive']);
+    $owner->forceFill(['status' => 'inactive'])->save();
+
+    $this->actingAs($owner)->get(route('products.index'))->assertForbidden();
+    $this->actingAs($admin)->get(route('admin.dashboard'))->assertForbidden();
+});
+
 test('role and status cannot be mass assigned', function () {
     $user = new User(['role' => 'platform_admin', 'status' => 'inactive']);
 

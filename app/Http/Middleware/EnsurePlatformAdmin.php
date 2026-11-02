@@ -15,7 +15,7 @@ class EnsurePlatformAdmin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        abort_unless($request->user()?->isPlatformAdmin(), 403);
+        abort_unless($request->user()?->isPlatformAdmin() && $request->user()->isActive(), 403);
 
         return $next($request);
     }

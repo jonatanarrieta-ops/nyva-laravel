@@ -17,7 +17,7 @@ class EnsureEstablishmentAccess
     {
         $user = $request->user();
 
-        abort_unless($user?->isEstablishmentUser(), 403);
+        abort_unless($user?->isEstablishmentUser() && $user->isActive(), 403);
 
         if ($permission !== null) {
             abort_unless($user->accessibleEstablishments($permission)->exists(), 403);
