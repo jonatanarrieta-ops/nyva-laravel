@@ -4,11 +4,16 @@ use App\Actions\PlaceOrder;
 use App\Models\Establishment;
 use App\Services\Cart;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
 new #[Layout('layouts.public')] #[Title('Confirmar pedido')] class extends Component {
+    #[Locked]
+    public string $orderKey = '';
+
     public string $customer_name = '';
     public string $customer_phone = '';
     public string $delivery_address = '';
@@ -19,7 +24,11 @@ new #[Layout('layouts.public')] #[Title('Confirmar pedido')] class extends Compo
             return $this->redirectRoute('cart.index', navigate: true);
         }
 
-        $this->customer_name = trim(Auth::user()->first_name.' '.Auth::user()->last_name);
+        if (Auth::check()) {
+            $this->customer_name = trim(Auth::user()->first_name.' '.Auth::user()->last_name);
+        }
+
+        $this->orderKey = (string) Str::uuid();
     }
 
     public function placeOrder(Cart $cart, PlaceOrder $placeOrder)
@@ -33,11 +42,15 @@ new #[Layout('layouts.public')] #[Title('Confirmar pedido')] class extends Compo
                 'delivery_address' => trim($this->delivery_address),
             ],
             Auth::id(),
+            'web',
+            $this->orderKey,
         );
 
         $cart->clear();
 
-        return $this->redirectRoute('my-orders.confirmation', ['order' => $order->id], navigate: true);
+        return Auth::check()
+            ? $this->redirectRoute('my-orders.confirmation', ['order' => $order->id], navigate: true)
+            : $this->redirectRoute('orders.track', ['token' => $order->public_token], navigate: true);
     }
 
     public function with(Cart $cart): array

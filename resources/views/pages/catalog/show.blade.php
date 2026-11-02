@@ -3,6 +3,7 @@
 use App\Models\Establishment;
 use App\Models\Product;
 use App\Services\Cart;
+use App\Services\Chatbot\EstablishmentContext;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -18,7 +19,7 @@ new #[Layout('layouts.public')] class extends Component {
 
     public function mount(Establishment $establishment): void
     {
-        abort_unless($establishment->status === 'active', 404);
+        abort_unless($establishment->isPublic(), 404);
 
         $this->establishmentId = $establishment->id;
     }
@@ -62,6 +63,12 @@ new #[Layout('layouts.public')] class extends Component {
             return;
         }
 
+        if ($result === Cart::CLOSED) {
+            $this->error = $product->category->establishment->orderBlockReason() ?? 'No es posible recibir pedidos.';
+
+            return;
+        }
+
         $this->notice = "{$product->name} se agregó al carrito.";
         $this->dispatch('cart-updated');
     }
@@ -96,6 +103,8 @@ new #[Layout('layouts.public')] class extends Component {
 
         return [
             'establishment' => $establishment,
+            'canOrder' => $establishment->canReceiveOrders(),
+            'hours' => (new EstablishmentContext($establishment))->scheduleLines(),
             'categories' => $establishment->categories()
                 ->where('status', 'active')
                 ->whereHas('products', fn ($query) => $query->where('status', 'active'))
@@ -108,32 +117,67 @@ new #[Layout('layouts.public')] class extends Component {
 ?>
 
 <div class="flex flex-col gap-6">
-    <section class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
-        <p class="text-xs font-medium uppercase tracking-wide text-indigo-700">{{ $establishment->type }}</p>
-        <h1 class="mt-1 text-2xl font-bold text-zinc-900">{{ $establishment->name }}</h1>
-
-        @if ($establishment->description)
-            <p class="mt-2 text-sm text-zinc-600">{{ $establishment->description }}</p>
-        @endif
-
-        <dl class="mt-4 grid gap-2 text-sm text-zinc-600 sm:grid-cols-3">
-            <div>
-                <dt class="font-medium text-zinc-900">Dirección</dt>
-                <dd class="break-words">{{ $establishment->address }}</dd>
-            </div>
-            <div>
-                <dt class="font-medium text-zinc-900">Teléfono</dt>
-                <dd>{{ $establishment->phone }}</dd>
-            </div>
-            @if ($establishment->email)
-                <div>
-                    <dt class="font-medium text-zinc-900">Correo</dt>
-                    <dd class="break-words">{{ $establishment->email }}</dd>
-                </div>
+    <section class="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
+        <div class="h-32 bg-gradient-to-r from-indigo-700 to-violet-600 sm:h-44">
+            @if ($establishment->coverUrl())
+                <img src="{{ $establishment->coverUrl() }}" alt="" class="h-full w-full object-cover">
             @endif
-        </dl>
-    </section>
+        </div>
 
+        <div class="p-5 sm:p-6">
+            <div class="-mt-14 flex flex-wrap items-end justify-between gap-3 sm:-mt-16">
+                <span class="flex size-20 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-indigo-100 text-2xl font-bold text-indigo-700 shadow-sm sm:size-24">
+                    @if ($establishment->logoUrl())
+                        <img src="{{ $establishment->logoUrl() }}" alt="Logotipo de {{ $establishment->name }}" class="h-full w-full object-cover">
+                    @else
+                        {{ mb_substr($establishment->name, 0, 1) }}
+                    @endif
+                </span>
+
+                <span @class([
+                    'rounded-full px-3 py-1 text-xs font-semibold',
+                    'bg-green-100 text-green-800' => $canOrder,
+                    'bg-zinc-200 text-zinc-700' => ! $canOrder,
+                ])>
+                    {{ $canOrder ? 'Recibiendo pedidos' : 'Sin pedidos por ahora' }}
+                </span>
+            </div>
+
+            <p class="mt-3 text-xs font-medium uppercase tracking-wide text-indigo-700">{{ $establishment->type }}</p>
+            <h1 class="mt-1 text-2xl font-bold text-zinc-900 sm:text-3xl">{{ $establishment->name }}</h1>
+
+            @if ($establishment->description)
+                <p class="mt-2 text-sm text-zinc-600">{{ $establishment->description }}</p>
+            @endif
+
+            <dl class="mt-4 grid gap-4 text-sm text-zinc-600 sm:grid-cols-2 lg:grid-cols-4">
+                <div>
+                    <dt class="font-medium text-zinc-900">Dirección</dt>
+                    <dd class="break-words">{{ $establishment->address }}</dd>
+                </div>
+                <div>
+                    <dt class="font-medium text-zinc-900">Teléfono</dt>
+                    <dd>{{ $establishment->phone }}</dd>
+                </div>
+                @if ($establishment->email)
+                    <div>
+                        <dt class="font-medium text-zinc-900">Correo</dt>
+                        <dd class="break-words">{{ $establishment->email }}</dd>
+                    </div>
+                @endif
+                @if ($hours->isNotEmpty())
+                    <div>
+                        <dt class="font-medium text-zinc-900">Horarios</dt>
+                        <dd>
+                            @foreach ($hours as $line)
+                                <span class="block">{{ $line }}</span>
+                            @endforeach
+                        </dd>
+                    </div>
+                @endif
+            </dl>
+        </div>
+    </section>
     @if ($notice)
         <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
             {{ $notice }}
@@ -203,7 +247,7 @@ new #[Layout('layouts.public')] class extends Component {
                             <div class="mt-auto flex items-center justify-between gap-3 pt-2">
                                 <span class="font-bold text-zinc-900">$ {{ number_format((float) $product->price, 0, ',', '.') }}</span>
 
-                                @if ($product->available)
+                                @if ($product->available && $canOrder)
                                     <button
                                         type="button"
                                         wire:click="addToCart({{ $product->id }})"
@@ -213,6 +257,8 @@ new #[Layout('layouts.public')] class extends Component {
                                     >
                                         Agregar
                                     </button>
+                                @elseif ($product->available)
+                                    <span class="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-semibold text-zinc-600">Disponible</span>
                                 @else
                                     <span class="rounded-full bg-zinc-200 px-2.5 py-1 text-xs font-semibold text-zinc-700">No disponible</span>
                                 @endif
@@ -227,4 +273,6 @@ new #[Layout('layouts.public')] class extends Component {
             Este establecimiento todavía no tiene productos publicados.
         </div>
     @endforelse
+
+    <livewire:pages::chatbot.widget :establishment-id="$establishment->id" />
 </div>
