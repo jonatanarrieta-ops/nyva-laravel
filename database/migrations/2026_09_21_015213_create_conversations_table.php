@@ -18,13 +18,13 @@ return new class extends Migration
                 ->constrained()
                 ->cascadeOnDelete();
 
-            $table->string('customer_name')->nullable();
+            $table->string('customer_identifier')->nullable();
 
-            $table->text('message');
+            $table->dateTime('started_at')->nullable();
 
-            $table->text('response');
+            $table->dateTime('ended_at')->nullable();
 
-            $table->string('status')->default('completed');
+            $table->string('status', 30)->default('active');
 
             $table->timestamps();
         });
