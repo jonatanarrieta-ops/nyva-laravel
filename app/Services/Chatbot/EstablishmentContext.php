@@ -64,9 +64,11 @@ class EstablishmentContext
     {
         $order = array_keys(Schedule::DAYS);
 
-        return $this->establishment->schedules()
+        /** @var Collection<int, string> $lines */
+        $lines = $this->establishment->schedules()
             ->where('status', 'active')
             ->get()
+            ->toBase()
             ->sortBy(fn (Schedule $schedule) => array_search(strtolower($schedule->day_of_week), $order, true))
             ->map(fn (Schedule $schedule) => sprintf(
                 '%s: %s a %s',
@@ -75,6 +77,8 @@ class EstablishmentContext
                 substr($schedule->closes_at, 0, 5),
             ))
             ->values();
+
+        return $lines;
     }
 
     /**

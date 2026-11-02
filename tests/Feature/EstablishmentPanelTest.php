@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\PlaceOrder;
 use App\Models\Category;
 use App\Models\Establishment;
 use App\Models\Plan;
@@ -7,7 +8,7 @@ use App\Models\Product;
 use App\Models\Schedule;
 use App\Models\User;
 use App\Notifications\NewOrderReceived;
-use App\Actions\PlaceOrder;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
@@ -129,7 +130,7 @@ test('faqs are managed per establishment', function () {
     expect($establishment->frequentlyAskedQuestions()->count())->toBe(1);
 
     expect(fn () => $component->call('delete', $foreign->id))
-        ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        ->toThrow(ModelNotFoundException::class);
 });
 
 test('the chatbot settings are saved', function () {
@@ -283,7 +284,7 @@ test('the bell only shows the notifications of the current user', function () {
     Livewire::actingAs($owner)->test('pages::notifications.bell')->call('toggle')->assertSee('Nuevo pedido');
 
     expect(fn () => Livewire::actingAs($other)->test('pages::notifications.bell')->call('markAsRead', $id))
-        ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        ->toThrow(ModelNotFoundException::class);
 
     Livewire::actingAs($owner)->test('pages::notifications.bell')->call('markAllAsRead');
 

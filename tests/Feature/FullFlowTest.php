@@ -4,7 +4,6 @@ use App\Models\Category;
 use App\Models\Establishment;
 use App\Models\Order;
 use App\Models\Plan;
-use App\Models\Product;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Livewire;

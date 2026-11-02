@@ -62,7 +62,13 @@ class ChatbotService
 
         $reply = $this->orderFor($establishment, $conversation)->resume();
 
-        if ($reply) {
+        // Recargar la página varias veces no debe repetir el aviso.
+        $alreadyNotified = str_starts_with(
+            (string) $conversation->messages()->latest('id')->value('content'),
+            OrderConversation::RESUME_PREFIX,
+        );
+
+        if ($reply && ! $alreadyNotified) {
             $this->store($conversation, 'assistant', $reply->text, $reply->payload());
         }
 

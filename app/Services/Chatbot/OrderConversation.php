@@ -15,6 +15,8 @@ use Illuminate\Validation\ValidationException;
  */
 class OrderConversation
 {
+    public const RESUME_PREFIX = 'Retomemos tu pedido.';
+
     private const BROWSING = 'browsing';
 
     private const NAME = 'customer_name';
@@ -92,15 +94,15 @@ class OrderConversation
 
         $changes = $this->refreshDraft();
 
-        if (! $this->hasDraft()) {
+        if ($this->draft()['items'] === []) {
             return new ChatReply(implode(' ', $changes).' Tu pedido quedó vacío.', isOrderFlow: true);
         }
 
-        return $this->summaryReply(trim('Retomemos tu pedido. '.implode(' ', $changes)));
+        return $this->summaryReply(trim(self::RESUME_PREFIX.' '.implode(' ', $changes)));
     }
 
     /**
-     * @return array{stage: string, items: array<int|string, int>, customer: array<string, string>, key: string|null, prices: array<int|string, string>}
+     * @return array{stage: string, items: array<int|string, int>, customer: array{customer_name: string, customer_phone: string, delivery_address: string}, key: string|null, prices: array<int|string, string>}
      */
     private function draft(): array
     {
@@ -159,7 +161,7 @@ class OrderConversation
 
         if ($added === []) {
             return new ChatReply(
-                '¿Qué producto deseas agregar? Escribe, por ejemplo, "agrega 2 '.($this->context->products()->first()?->name ?? 'productos').'".',
+                '¿Qué producto deseas agregar? Escribe, por ejemplo, "agrega 2 '.($this->context->products()->first()->name ?? 'productos').'".',
                 suggestions: ['Ver menú'],
                 isOrderFlow: true,
             );
@@ -291,7 +293,7 @@ class OrderConversation
                 $this->context->establishment->id,
                 $draft['items'],
                 $draft['customer'],
-                Auth::id(),
+                Auth::user()?->id,
                 'chat',
                 $draft['key'],
             );
@@ -374,7 +376,7 @@ class OrderConversation
 
             if (! $product || ! $product->isOrderable()) {
                 unset($items[$id], $prices[$id]);
-                $changes[] = ($product?->name ?? 'Un producto').' ya no está disponible.';
+                $changes[] = ($product->name ?? 'Un producto').' ya no está disponible.';
 
                 continue;
             }
