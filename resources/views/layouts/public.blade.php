@@ -4,7 +4,7 @@
         @include('partials.head')
     </head>
 
-    <body class="min-h-screen bg-gray-50 text-zinc-900">
+    <body class="nyva-public min-h-screen bg-gray-50 text-zinc-900">
         <header class="border-b border-zinc-200 bg-white">
             <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 sm:px-6">
                 <a href="{{ route('home') }}" wire:navigate class="flex items-center gap-2 font-semibold">

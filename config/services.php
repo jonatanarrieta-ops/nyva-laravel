@@ -35,7 +35,6 @@ return [
         ],
     ],
 
-
     'chatbot' => [
         'driver' => env('CHATBOT_AI_DRIVER'),
         'key' => env('CHATBOT_AI_KEY'),

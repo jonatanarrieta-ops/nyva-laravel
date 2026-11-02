@@ -200,7 +200,7 @@ new #[Layout('layouts.app')]
         <button
             type="button"
             wire:click="createCategory"
-            class="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+            class="nyva-btn"
         >
             <span>+</span>
             Nueva categoría
@@ -246,7 +246,7 @@ new #[Layout('layouts.app')]
                         <select
                             id="establishmentId"
                             wire:model="establishmentId"
-                            class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
+                            class="nyva-input"
                         >
                             <option value="">Selecciona un establecimiento</option>
 
@@ -273,7 +273,7 @@ new #[Layout('layouts.app')]
                             wire:model="name"
                             maxlength="100"
                             placeholder="Ej. Bebidas, Postres, Entradas"
-                            class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
+                            class="nyva-input"
                         >
 
                         @error('name')
@@ -292,7 +292,7 @@ new #[Layout('layouts.app')]
                             rows="3"
                             maxlength="5000"
                             placeholder="Describe brevemente esta categoría..."
-                            class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
+                            class="nyva-input"
                         ></textarea>
 
                         @error('description')
@@ -327,7 +327,7 @@ new #[Layout('layouts.app')]
                                 type="submit"
                                 wire:loading.attr="disabled"
                                 wire:target="save"
-                                class="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-white dark:text-zinc-900"
+                                class="nyva-btn"
                             >
                                 <span wire:loading.remove wire:target="save">
                                     {{ $categoryId ? 'Guardar cambios' : 'Crear categoría' }}
@@ -353,7 +353,7 @@ new #[Layout('layouts.app')]
                     wire:model.live.debounce.300ms="search"
                     placeholder="Buscar categorías..."
                     aria-label="Buscar categorías"
-                    class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
+                    class="nyva-input"
                 >
             </div>
 
@@ -361,7 +361,7 @@ new #[Layout('layouts.app')]
                 <select
                     wire:model.live="filterEstablishment"
                     aria-label="Filtrar por establecimiento"
-                    class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950"
+                    class="nyva-input"
                 >
                     <option value="">Todos los establecimientos</option>
 
@@ -400,7 +400,7 @@ new #[Layout('layouts.app')]
                     <button
                         type="button"
                         wire:click="createCategory"
-                        class="mt-4 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white dark:bg-white dark:text-zinc-900"
+                        class="nyva-btn"
                     >
                         Crear primera categoría
                     </button>

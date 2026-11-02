@@ -300,7 +300,7 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
         <button
             type="button"
             wire:click="openCreateForm"
-            class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+            class="nyva-btn"
         >
             + Nuevo pedido
         </button>
@@ -333,7 +333,7 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
 
                     <select
                         wire:model.live="establishment_id"
-                        class="w-full rounded-lg border border-gray-400 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-indigo-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                        class="nyva-input"
                     >
                         <option value="">Selecciona un establecimiento</option>
 
@@ -357,7 +357,7 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
                     <input
                         type="text"
                         wire:model="customer_name"
-                        class="w-full rounded-lg border border-gray-400 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-indigo-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                        class="nyva-input"
                         placeholder="Ej. Juan Pérez"
                     >
 
@@ -374,7 +374,7 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
                     <input
                         type="text"
                         wire:model="customer_phone"
-                        class="w-full rounded-lg border border-gray-400 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-indigo-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                        class="nyva-input"
                         placeholder="Ej. 3001234567"
                     >
 
@@ -391,7 +391,7 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
                     <input
                         type="text"
                         wire:model="delivery_address"
-                        class="w-full rounded-lg border border-gray-400 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-indigo-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                        class="nyva-input"
                         placeholder="Ej. Calle 10 # 20-30"
                     >
 
@@ -542,7 +542,7 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
                     type="button"
                     wire:click="saveOrder"
                     wire:loading.attr="disabled"
-                    class="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+                    class="nyva-btn"
                 >
                     <span wire:loading.remove wire:target="saveOrder">
                         Crear pedido
@@ -567,7 +567,7 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
                     type="text"
                     wire:model.live.debounce.400ms="search"
                     placeholder="Nombre o teléfono"
-                    class="w-full rounded-lg border border-gray-400 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-indigo-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                    class="nyva-input"
                 >
             </div>
 
@@ -578,7 +578,7 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
 
                 <select
                     wire:model.live="establishmentFilter"
-                    class="w-full rounded-lg border border-gray-400 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-indigo-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                    class="nyva-input"
                 >
                     <option value="">Todos</option>
 
@@ -597,7 +597,7 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
 
                 <select
                     wire:model.live="statusFilter"
-                    class="w-full rounded-lg border border-gray-400 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-500 focus:border-indigo-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                    class="nyva-input"
                 >
                     <option value="">Todos</option>
                     <option value="pending">Pendiente</option>
@@ -665,9 +665,7 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
 
                             <td class="px-4 py-4">
                                 <div class="space-y-2">
-                                    <span class="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
-                                        {{ $order->statusLabel() }}
-                                    </span>
+                                    <x-order-status :status="$order->status" :label="$order->statusLabel()" />
 
                                     @php
                                         $availableTransitions = Order::TRANSITIONS[$order->status] ?? [];

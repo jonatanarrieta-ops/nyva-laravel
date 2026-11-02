@@ -262,7 +262,7 @@ new #[Layout('layouts.app')]
         <button
             type="button"
             wire:click="createProduct"
-            class="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+            class="nyva-btn"
         >
             <span>+</span> Nuevo producto
         </button>
@@ -297,7 +297,7 @@ new #[Layout('layouts.app')]
                         <select
                             id="categoryId"
                             wire:model="categoryId"
-                            class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                            class="nyva-input"
                         >
                             <option value="">Selecciona una categoría</option>
                             @foreach ($formCategories as $category)
@@ -316,7 +316,7 @@ new #[Layout('layouts.app')]
                             type="text"
                             wire:model="name"
                             maxlength="150"
-                            class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                            class="nyva-input"
                         />
                         @error('name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
@@ -327,7 +327,7 @@ new #[Layout('layouts.app')]
                             id="description"
                             wire:model="description"
                             rows="3"
-                            class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                            class="nyva-input"
                         ></textarea>
                         @error('description') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
@@ -340,7 +340,7 @@ new #[Layout('layouts.app')]
                             min="0"
                             step="0.01"
                             wire:model="price"
-                            class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                            class="nyva-input"
                         />
                         @error('price') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
@@ -362,7 +362,7 @@ new #[Layout('layouts.app')]
                             type="file"
                             wire:model="image"
                             accept=".jpg,.jpeg,.png,.webp"
-                            class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                            class="nyva-input"
                         />
                         <p wire:loading wire:target="image" class="mt-1 text-sm text-zinc-500">Cargando imagen...</p>
                         @error('image') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
@@ -389,7 +389,7 @@ new #[Layout('layouts.app')]
                         </button>
                         <button
                             type="submit"
-                            class="rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white dark:bg-white dark:text-zinc-900"
+                            class="nyva-btn"
                         >
                             Guardar producto
                         </button>
@@ -408,7 +408,7 @@ new #[Layout('layouts.app')]
                     type="search"
                     wire:model.live.debounce.300ms="search"
                     placeholder="Nombre o descripción..."
-                    class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                    class="nyva-input"
                 />
             </div>
 
@@ -417,7 +417,7 @@ new #[Layout('layouts.app')]
                 <select
                     id="filterEstablishment"
                     wire:model.live="filterEstablishment"
-                    class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                    class="nyva-input"
                 >
                     <option value="">Todos los establecimientos</option>
                     @foreach ($establishments as $establishment)
@@ -431,7 +431,7 @@ new #[Layout('layouts.app')]
                 <select
                     id="filterCategory"
                     wire:model.live="filterCategory"
-                    class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                    class="nyva-input"
                 >
                     <option value="">Todas las categorías</option>
                     @foreach ($categories as $category)

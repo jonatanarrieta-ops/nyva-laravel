@@ -117,6 +117,23 @@
     }
 }
 
+/* La página pública mantiene su tema claro aunque el visitante use modo oscuro. */
+.nyva-public {
+    color-scheme: light;
+
+    .nyva-input {
+        border-color: var(--color-zinc-300);
+        background-color: var(--color-white);
+        color: var(--color-zinc-900);
+    }
+
+    .nyva-btn-secondary {
+        border-color: var(--color-zinc-300);
+        background-color: var(--color-white);
+        color: var(--color-zinc-700);
+    }
+}
+
 /* Las pantallas heredadas usan colores claros; dentro de los paneles se adaptan al modo oscuro. */
 .dark [data-flux-main] {
     .bg-white {

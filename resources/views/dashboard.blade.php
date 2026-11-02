@@ -16,7 +16,7 @@
         @endphp
 
         <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <x-stat-card label="Ventas de hoy" :value="'$ '.number_format((float) $salesToday, 0, ',', '.')" :hint="$ordersToday.' pedidos hoy'" tone="green" />
+            <x-stat-card label="Ventas de hoy" :value="'$ '.number_format((float) $salesToday, 0, ',', '.')" :hint="$ordersToday.($ordersToday === 1 ? ' pedido hoy' : ' pedidos hoy')" tone="green" />
             <x-stat-card label="Pedidos pendientes" :value="$pendingOrderCount" hint="Requieren atención" tone="amber" />
             <x-stat-card label="Pedidos completados" :value="$completedOrderCount" :hint="$orderCount.' pedidos en total'" />
             <x-stat-card label="Productos" :value="$productCount" :hint="$categoryCount.' categorías · '.$establishmentCount.' establecimientos'" tone="violet" />
