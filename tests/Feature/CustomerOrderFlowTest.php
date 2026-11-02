@@ -15,8 +15,8 @@ function filledCheckout(User $customer)
         ->set('delivery_address', 'Calle 10 # 20-30');
 }
 
-test('guests must sign in before the checkout', function () {
-    $this->get(route('checkout'))->assertRedirect(route('login'));
+test('guests can reach the checkout but not the private order history', function () {
+    $this->get(route('checkout'))->assertRedirect(route('cart.index'));
     $this->get(route('my-orders.index'))->assertRedirect(route('login'));
 });
 

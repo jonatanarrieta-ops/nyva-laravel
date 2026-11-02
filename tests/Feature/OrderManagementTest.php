@@ -138,7 +138,7 @@ test('another owner cannot change a foreign order', function () {
 test('foreign orders are not listed nor opened from the url', function () {
     [, $establishment] = catalogFixture();
     $order = makeOrder($establishment->id);
-    $other = User::factory()->create(['role' => 'establishment_admin']);
+    [$other] = catalogFixture();
 
     $this->actingAs($other)
         ->get(route('orders.index', ['order' => $order->id]))
