@@ -5,6 +5,8 @@ use App\Models\Establishment;
 use App\Models\Order;
 use App\Models\User;
 use App\Services\Cart;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 
 $customer = [
@@ -87,7 +89,7 @@ test('suspended or closed establishments refuse public orders', function (string
     $establishment->forceFill([$column => $value])->save();
 
     expect(fn () => app(PlaceOrder::class)->handle($establishment->id, [$product->id => 1], $customer))
-        ->toThrow(Illuminate\Validation\ValidationException::class);
+        ->toThrow(ValidationException::class);
 
     expect(Order::count())->toBe(0);
 })->with([
@@ -104,7 +106,7 @@ test('an establishment without a subscription keeps its page but refuses orders'
     $this->get(route('catalog.show', $establishment))->assertOk();
 
     expect(fn () => app(PlaceOrder::class)->handle($establishment->id, [$product->id => 1], $customer))
-        ->toThrow(Illuminate\Validation\ValidationException::class);
+        ->toThrow(ValidationException::class);
 });
 
 test('the cart refuses products of a closed establishment', function () {
@@ -136,7 +138,7 @@ test('an owner cannot switch to a foreign establishment', function () {
     expect(fn () => Livewire::actingAs($owner)
         ->test('pages::faqs.index')
         ->set('currentEstablishmentId', $foreign->id))
-        ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        ->toThrow(ModelNotFoundException::class);
 });
 
 test('owners only see their own data in every list', function (string $component) {
