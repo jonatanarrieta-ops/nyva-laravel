@@ -33,6 +33,10 @@ trait WithEstablishmentContext
 
     protected function currentEstablishment(): Establishment
     {
+        if ($this->currentEstablishmentId === null) {
+            $this->mountWithEstablishmentContext();
+        }
+
         return Auth::user()
             ->accessibleEstablishments($this->establishmentPermission())
             ->findOrFail($this->currentEstablishmentId);

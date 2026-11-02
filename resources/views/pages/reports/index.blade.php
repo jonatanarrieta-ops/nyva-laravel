@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Establishment;
 use App\Models\Order;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,8 +15,19 @@ new #[Layout('layouts.app')] #[Title('Reportes')] class extends Component {
 
     public function mount(): void
     {
+        abort_unless(
+            $this->reportableEstablishments()->contains(fn ($establishment) => $establishment->hasFeature('reports')),
+            403,
+            'Tu plan no incluye reportes.'
+        );
+
         $this->startDate = now()->startOfMonth()->toDateString();
         $this->endDate = now()->toDateString();
+    }
+
+    private function reportableEstablishments()
+    {
+        return Auth::user()->accessibleEstablishments('orders')->orderBy('name')->get();
     }
 
     private function filteredOrders()
@@ -25,7 +35,7 @@ new #[Layout('layouts.app')] #[Title('Reportes')] class extends Component {
         $query = Order::query()
             ->whereIn(
                 'establishment_id',
-                Auth::user()->establishments()->select('id')
+                Auth::user()->accessibleEstablishments('orders')->select('id')
             )
             ->where('orders.status', '!=', 'cancelled');
 
@@ -39,7 +49,7 @@ new #[Layout('layouts.app')] #[Title('Reportes')] class extends Component {
         if ($this->establishmentFilter) {
             $query->whereIn(
                 'establishment_id',
-                Auth::user()->establishments()
+                Auth::user()->accessibleEstablishments('orders')
                     ->whereKey($this->establishmentFilter)
                     ->select('id')
             );
@@ -51,10 +61,7 @@ new #[Layout('layouts.app')] #[Title('Reportes')] class extends Component {
     #[Computed]
     public function establishmentsList()
     {
-        return Establishment::query()
-            ->where('user_id', Auth::id())
-            ->orderBy('name')
-            ->get();
+        return $this->reportableEstablishments();
     }
 
     #[Computed]
@@ -128,7 +135,7 @@ new #[Layout('layouts.app')] #[Title('Reportes')] class extends Component {
 };
 ?>
 
-<div class="space-y-6 rounded-xl bg-gray-50 p-4 md:p-6">
+<div class="space-y-6 p-4 md:p-6">
     <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h1 class="text-2xl font-bold text-zinc-900">Estadísticas y reportes</h1>

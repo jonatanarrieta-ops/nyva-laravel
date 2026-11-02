@@ -36,9 +36,7 @@ new #[Layout('layouts.app')]
         private function ownedCategories()
         {
             return Category::query()
-                ->whereHas('establishment', function ($query) {
-                    $query->where('user_id', Auth::id());
-                });
+                ->whereIn('establishment_id', Auth::user()->accessibleEstablishments('catalog')->select('id'));
         }
 
         public function createCategory(): void
@@ -88,7 +86,7 @@ new #[Layout('layouts.app')]
             ]);
 
             $establishment = Auth::user()
-                ->establishments()
+                ->accessibleEstablishments('catalog')
                 ->whereKey($validated['establishmentId'])
                 ->first();
 
@@ -178,7 +176,7 @@ new #[Layout('layouts.app')]
             return [
                 'categories' => $categories,
                 'establishments' => Auth::user()
-                    ->establishments()
+                    ->accessibleEstablishments('catalog')
                     ->orderBy('name')
                     ->get(),
             ];

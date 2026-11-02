@@ -2,8 +2,9 @@
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\ImageStorage;
+use App\Services\PlanLimits;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -51,16 +52,14 @@ new #[Layout('layouts.app')]
 
         private function ownedProducts()
         {
-            return Product::query()->whereHas('category.establishment', function ($query) {
-                $query->where('user_id', Auth::id());
+            return Product::query()->whereHas('category', function ($query) {
+                $query->whereIn('establishment_id', Auth::user()->accessibleEstablishments('catalog')->select('id'));
             });
         }
 
         private function ownedCategories()
         {
-            return Category::query()->whereHas('establishment', function ($query) {
-                $query->where('user_id', Auth::id());
-            });
+            return Category::query()->whereIn('establishment_id', Auth::user()->accessibleEstablishments('catalog')->select('id'));
         }
 
         public function createProduct(): void
@@ -143,21 +142,26 @@ new #[Layout('layouts.app')]
                 'status' => $validated['status'] ? 'active' : 'inactive',
             ];
 
-            if ($this->image) {
-                $data['image'] = $this->image->store('products', 'public');
-            }
-
             if ($this->productId !== null) {
                 $product = $this->ownedProducts()->findOrFail($this->productId);
-                $previousImage = $product->image;
-                $product->update($data);
 
-                if ($this->image) {
-                    $this->deleteStoredImage($previousImage);
+                if ($product->category->establishment_id !== $category->establishment_id) {
+                    app(PlanLimits::class)->ensureCanAddProduct($category->establishment);
                 }
 
+                if ($this->image) {
+                    $data['image'] = app(ImageStorage::class)->replace($this->image, 'products', $product->image);
+                }
+
+                $product->update($data);
                 $message = 'Producto actualizado correctamente.';
             } else {
+                app(PlanLimits::class)->ensureCanAddProduct($category->establishment);
+
+                if ($this->image) {
+                    $data['image'] = $this->image->store('products', 'public');
+                }
+
                 Product::create($data);
                 $message = 'Producto creado correctamente.';
             }
@@ -183,17 +187,19 @@ new #[Layout('layouts.app')]
 
             $image = $product->image;
             $product->delete();
-            $this->deleteStoredImage($image);
+            app(ImageStorage::class)->delete($image);
 
             session()->flash('product-message', 'Producto eliminado correctamente.');
             $this->resetPage();
         }
 
-        private function deleteStoredImage(?string $path): void
+        public function removeImage(): void
         {
-            if ($path && ! str_starts_with($path, 'http')) {
-                Storage::disk('public')->delete($path);
-            }
+            $product = $this->ownedProducts()->findOrFail($this->productId);
+
+            app(ImageStorage::class)->delete($product->image);
+            $product->update(['image' => null]);
+            $this->currentImage = null;
         }
 
         public function with(): array
@@ -223,7 +229,7 @@ new #[Layout('layouts.app')]
                 ->paginate(10);
 
             $establishments = Auth::user()
-                ->establishments()
+                ->accessibleEstablishments('catalog')
                 ->orderBy('name')
                 ->get();
 
@@ -345,7 +351,10 @@ new #[Layout('layouts.app')]
                         </label>
 
                         @if ($currentImage)
-                            <img src="{{ $currentImage }}" alt="Imagen actual" onerror="this.remove()" class="mb-2 size-20 rounded-lg object-cover">
+                            <div class="mb-2 flex items-center gap-3">
+                                <img src="{{ $currentImage }}" alt="Imagen actual" onerror="this.remove()" class="size-20 rounded-lg object-cover">
+                                <button type="button" wire:click="removeImage" wire:confirm="¿Eliminar la imagen?" class="text-sm font-medium text-red-600 hover:underline">Eliminar imagen</button>
+                            </div>
                         @endif
 
                         <input

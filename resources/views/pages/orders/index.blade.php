@@ -1,7 +1,7 @@
 <?php
 
 use App\Actions\PlaceOrder;
-use App\Models\Establishment;
+use App\Actions\UpdateOrderStatus;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
@@ -166,7 +166,8 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
                 'customer_name' => $this->customer_name,
                 'customer_phone' => $this->customer_phone,
                 'delivery_address' => $this->delivery_address,
-            ]
+            ],
+            channel: 'panel',
         );
 
         session()->flash('success', 'Pedido creado correctamente.');
@@ -179,19 +180,13 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
     {
         $order = Order::query()
             ->whereKey($orderId)
-            ->whereHas('establishment', function ($query) {
-                $query->where('user_id', Auth::id());
-            })
+            ->whereIn('establishment_id', Auth::user()->accessibleEstablishments('orders')->select('id'))
             ->firstOrFail();
 
-        if (! $order->canTransitionTo($status)) {
+        if (! app(UpdateOrderStatus::class)->handle($order, $status)) {
             session()->flash('error', 'No se permite ese cambio de estado.');
             return;
         }
-
-        $order->update([
-            'status' => $status,
-        ]);
 
         session()->flash('success', 'Estado del pedido actualizado correctamente.');
     }
@@ -202,9 +197,7 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
         if ($orderId && ctype_digit((string) $orderId)) {
             $order = Order::query()
                 ->whereKey((int) $orderId)
-                ->whereHas('establishment', function ($query) {
-                    $query->where('user_id', Auth::id());
-                })
+                ->whereIn('establishment_id', Auth::user()->accessibleEstablishments('orders')->select('id'))
                 ->exists();
 
             if ($order) {
@@ -222,8 +215,7 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
 
     private function userEstablishments()
     {
-        return Establishment::query()
-            ->where('user_id', Auth::id());
+        return Auth::user()->accessibleEstablishments('orders');
     }
 
     private function availableProducts()
@@ -254,9 +246,7 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
                 'establishment',
                 'orderItems.product',
             ])
-            ->whereHas('establishment', function ($query) {
-                $query->where('user_id', Auth::id());
-            })
+            ->whereIn('establishment_id', Auth::user()->accessibleEstablishments('orders')->select('id'))
             ->when($this->search !== '', function ($query) {
                 $search = '%' . $this->search . '%';
 
@@ -285,7 +275,7 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
 };
 ?>
 
-<div class="space-y-6 rounded-xl bg-gray-50 p-4 md:p-6">
+<div class="space-y-6 p-4 md:p-6">
 
     @if (session('success'))
         <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
