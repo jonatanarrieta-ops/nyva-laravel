@@ -11,7 +11,7 @@ class EstablishmentSeeder extends Seeder
     {
         try {
 
-            Establishment::create([
+            Establishment::forceCreate([
                 'user_id' => 1,
                 'name' => 'NYVA Restaurante',
                 'type' => 'restaurant',

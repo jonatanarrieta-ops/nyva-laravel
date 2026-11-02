@@ -12,7 +12,7 @@ class UserSeeder extends Seeder
     {
         try {
 
-            User::create([
+            User::forceCreate([
                 'first_name' => 'Administrador',
                 'last_name' => 'NYVA',
                 'email' => 'admin@nyva.com',

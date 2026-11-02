@@ -38,5 +38,6 @@ test('registered users get the customer role', function () {
     $user = User::where('email', 'ana@example.com')->firstOrFail();
 
     expect($user->role)->toBe('customer')
-        ->and($user->isAdmin())->toBeFalse();
+        ->and($user->isEstablishmentUser())->toBeFalse()
+        ->and($user->isPlatformAdmin())->toBeFalse();
 });

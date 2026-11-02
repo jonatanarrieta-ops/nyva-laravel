@@ -2,16 +2,21 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $establishment_id
+ * @property string $name
+ * @property string|null $description
+ * @property string $status
+ * @property-read Establishment|null $establishment
+ */
 class Category extends Model
 {
     public $timestamps = false;
-
-    use HasFactory;
 
     protected $fillable = [
         'establishment_id',
@@ -20,10 +25,22 @@ class Category extends Model
         'status',
     ];
 
+    /**
+
+     * @return BelongsTo<Establishment, $this>
+
+     */
+
     public function establishment(): BelongsTo
     {
         return $this->belongsTo(Establishment::class);
     }
+
+    /**
+
+     * @return HasMany<Product, $this>
+
+     */
 
     public function products(): HasMany
     {

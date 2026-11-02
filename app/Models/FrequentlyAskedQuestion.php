@@ -2,15 +2,19 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $establishment_id
+ * @property string $question
+ * @property string $answer
+ * @property string $status
+ */
 class FrequentlyAskedQuestion extends Model
 {
     public $timestamps = false;
-
-    use HasFactory;
 
     protected $fillable = [
         'establishment_id',
@@ -18,6 +22,12 @@ class FrequentlyAskedQuestion extends Model
         'answer',
         'status',
     ];
+
+    /**
+
+     * @return BelongsTo<Establishment, $this>
+
+     */
 
     public function establishment(): BelongsTo
     {

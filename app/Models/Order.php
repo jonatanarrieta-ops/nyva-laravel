@@ -2,17 +2,31 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
+/**
+ * @property int $id
+ * @property int $establishment_id
+ * @property int|null $user_id
+ * @property string $public_token
+ * @property string|null $idempotency_key
+ * @property string $channel
+ * @property string $customer_name
+ * @property string $customer_phone
+ * @property string $delivery_address
+ * @property numeric-string $total
+ * @property string $status
+ * @property CarbonInterface|null $ordered_at
+ * @property-read Establishment|null $establishment
+ */
 class Order extends Model
 {
     public $timestamps = false;
-
-    use HasFactory;
 
     public const STATUS_LABELS = [
         'pending' => 'Pendiente',
@@ -35,6 +49,9 @@ class Order extends Model
     protected $fillable = [
         'establishment_id',
         'user_id',
+        'public_token',
+        'idempotency_key',
+        'channel',
         'customer_name',
         'customer_phone',
         'delivery_address',
@@ -43,9 +60,28 @@ class Order extends Model
         'ordered_at',
     ];
 
+    /**
+
+     * @return BelongsTo<Establishment, $this>
+
+     */
+
     public function establishment(): BelongsTo
     {
         return $this->belongsTo(Establishment::class);
+    }
+
+    /**
+
+     * @return BelongsTo<User, $this>
+
+     */
+
+    protected static function booted(): void
+    {
+        static::creating(function (Order $order) {
+            $order->public_token ??= Str::random(40);
+        });
     }
 
     public function user(): BelongsTo
@@ -63,10 +99,22 @@ class Order extends Model
         return in_array($status, self::TRANSITIONS[$this->status] ?? [], true);
     }
 
+    /**
+
+     * @return HasMany<OrderItem, $this>
+
+     */
+
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
     }
+
+    /**
+
+     * @return BelongsToMany<Product, $this>
+
+     */
 
     public function products(): BelongsToMany
     {

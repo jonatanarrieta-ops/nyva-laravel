@@ -9,7 +9,7 @@ use Livewire\Livewire;
 test('the catalog home lists only active establishments', function () {
     [, $establishment] = catalogFixture();
     [, $inactive] = catalogFixture();
-    $inactive->update(['name' => 'Local cerrado', 'status' => 'inactive']);
+    $inactive->forceFill(['name' => 'Local cerrado', 'status' => 'inactive'])->save();
 
     $this->get(route('home'))
         ->assertOk()
@@ -32,10 +32,10 @@ test('the public catalog shows the establishment organized by category', functio
 
 test('inactive and missing establishments are not public', function () {
     [, $establishment] = catalogFixture();
-    $establishment->update(['status' => 'inactive']);
+    $establishment->forceFill(['status' => 'inactive'])->save();
 
     $this->get(route('catalog.show', $establishment))->assertNotFound();
-    $this->get(route('catalog.show', 999999))->assertNotFound();
+    $this->get(route('catalog.show', 'no-existe'))->assertNotFound();
 });
 
 test('inactive products are hidden and unavailable ones are labelled', function () {

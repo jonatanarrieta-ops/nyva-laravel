@@ -2,7 +2,8 @@
 
 namespace App\Providers;
 
-use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Middleware\EnsureEstablishmentAccess;
+use App\Http\Middleware\EnsurePlatformAdmin;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -27,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
 
-        Livewire::addPersistentMiddleware([EnsureUserIsAdmin::class]);
+        Livewire::addPersistentMiddleware([EnsurePlatformAdmin::class, EnsureEstablishmentAccess::class]);
     }
 
     /**

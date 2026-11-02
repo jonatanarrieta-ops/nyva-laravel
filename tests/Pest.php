@@ -3,6 +3,7 @@
 use App\Models\Category;
 use App\Models\Establishment;
 use App\Models\Order;
+use App\Models\Plan;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -63,14 +64,26 @@ function catalogFixture(array $productAttributes = []): array
 {
     $admin = User::factory()->create(['role' => 'establishment_admin']);
 
-    $establishment = Establishment::create([
-        'user_id' => $admin->id,
+    $establishment = $admin->establishments()->create([
         'name' => 'Local de prueba',
         'type' => 'restaurant',
         'description' => 'Descripción de prueba',
         'address' => 'Calle 1 # 2-3',
         'phone' => '3001234567',
         'email' => 'local@example.com',
+    ]);
+
+    $plan = Plan::create([
+        'name' => 'Plan de prueba',
+        'monthly_price' => 10000,
+        'features' => array_keys(Plan::FEATURES),
+        'status' => 'active',
+    ]);
+
+    $establishment->subscriptions()->create([
+        'plan_id' => $plan->id,
+        'billing_period' => 'monthly',
+        'start_date' => now()->subDay(),
         'status' => 'active',
     ]);
 
