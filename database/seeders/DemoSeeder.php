@@ -13,8 +13,9 @@ use Illuminate\Database\Seeder;
 /**
  * Datos ficticios para la demostración. Se puede ejecutar varias veces y no modifica otra información.
  *
- * Cuentas: demo.plataforma@nyva.test, demo.admin@nyva.test, demo.personal@nyva.test
- * y demo.cliente@nyva.test, con contraseña "password".
+ * Cada negocio tiene su propio propietario: demo.admin@nyva.test (Hamburguesas La Esquina)
+ * y demo.cafe@nyva.test (Café Aurora). Además: demo.plataforma@nyva.test, demo.personal@nyva.test
+ * y demo.cliente@nyva.test. Todas con contraseña "password".
  */
 class DemoSeeder extends Seeder
 {
@@ -22,6 +23,7 @@ class DemoSeeder extends Seeder
     {
         $this->user('Plataforma', 'Demo', 'demo.plataforma@nyva.test', 'platform_admin');
         $owner = $this->user('Admin', 'Demo', 'demo.admin@nyva.test', 'establishment_admin');
+        $cafeOwner = $this->user('Café', 'Aurora', 'demo.cafe@nyva.test', 'establishment_admin');
         $staff = $this->user('Personal', 'Demo', 'demo.personal@nyva.test', 'establishment_staff');
         $customer = $this->user('Cliente', 'Demo', 'demo.cliente@nyva.test', 'customer');
 
@@ -55,7 +57,7 @@ class DemoSeeder extends Seeder
             ],
         ]);
 
-        $cafe = $this->establishment($owner, [
+        $cafe = $this->establishment($cafeOwner, [
             'name' => 'Café Aurora',
             'type' => 'Restaurante',
             'description' => 'Café de origen y repostería del día.',
@@ -105,9 +107,15 @@ class DemoSeeder extends Seeder
      */
     private function establishment(User $owner, array $attributes, array $catalog): Establishment
     {
-        $establishment = $owner->establishments()->where('name', $attributes['name'])->first();
+        $establishment = Establishment::where('name', $attributes['name'])->first();
 
         if ($establishment) {
+            // Los datos demo creados antes compartían propietario; cada negocio queda con el suyo.
+            if ($establishment->user_id !== $owner->id && $establishment->user?->email === 'demo.admin@nyva.test') {
+                $establishment->user_id = $owner->id;
+                $establishment->save();
+            }
+
             return $establishment;
         }
 

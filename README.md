@@ -70,7 +70,8 @@ Se puede ejecutar varias veces y no modifica otra información. Las cuentas son 
 | Perfil | Correo |
 |---|---|
 | Administrador de plataforma | `demo.plataforma@nyva.test` |
-| Propietario | `demo.admin@nyva.test` |
+| Propietario de Hamburguesas La Esquina | `demo.admin@nyva.test` |
+| Propietario de Café Aurora | `demo.cafe@nyva.test` |
 | Usuario autorizado (pedidos) | `demo.personal@nyva.test` |
 | Cliente con cuenta | `demo.cliente@nyva.test` |
 
