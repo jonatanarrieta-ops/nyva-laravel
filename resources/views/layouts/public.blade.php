@@ -29,21 +29,7 @@
                 <nav class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-medium text-zinc-600">
                     <livewire:pages::cart.badge />
 
-                    @auth
-                        <a href="{{ route('my-orders.index') }}" wire:navigate class="hover:text-zinc-900">Mis pedidos</a>
-
-                        @if (auth()->user()->isPlatformAdmin() || auth()->user()->isEstablishmentUser())
-                            <a href="{{ route('dashboard') }}" wire:navigate class="hover:text-zinc-900">Panel</a>
-                        @endif
-
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="cursor-pointer hover:text-zinc-900">Cerrar sesión</button>
-                        </form>
-                    @else
-                        <a href="{{ route('login') }}" class="hover:text-zinc-900">Iniciar sesión</a>
-                        <a href="{{ route('register') }}" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-white hover:bg-indigo-700">Registrarse</a>
-                    @endauth
+                    {{-- La página pública es solo para clientes: no enlaza a cuentas ni paneles de la plataforma. --}}
                 </nav>
             </div>
         </header>

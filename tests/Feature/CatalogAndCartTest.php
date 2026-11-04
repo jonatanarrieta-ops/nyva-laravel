@@ -187,3 +187,19 @@ test('inactive categories are hidden from the catalog', function () {
     $this->get(route('catalog.show', $establishment))
         ->assertDontSee($category->name);
 });
+
+test('public pages do not link to accounts or panels', function (bool $signedIn) {
+    [$owner, $establishment] = catalogFixture();
+
+    if ($signedIn) {
+        $this->actingAs($owner);
+    }
+
+    $this->get(route('catalog.show', $establishment))
+        ->assertOk()
+        ->assertDontSee(route('login'), false)
+        ->assertDontSee(route('register'), false)
+        ->assertDontSee(route('dashboard'), false)
+        ->assertDontSee(route('my-orders.index'), false)
+        ->assertDontSee(route('logout'), false);
+})->with(['visitante' => false, 'con sesión' => true]);
