@@ -95,6 +95,7 @@ new #[Layout('layouts.public')] class extends Component {
     public function rendering($view): void
     {
         $view->title($this->establishment()->name);
+        $view->layoutData(['publicEstablishment' => $this->establishment()]);
     }
 
     public function with(): array

@@ -26,6 +26,11 @@ new #[Layout('layouts.public')] #[Title('Seguimiento del pedido')] class extends
             ->firstOrFail();
     }
 
+    public function rendering($view): void
+    {
+        $view->layoutData(['publicEstablishment' => $this->order()->establishment]);
+    }
+
     public function with(): array
     {
         $order = $this->order();

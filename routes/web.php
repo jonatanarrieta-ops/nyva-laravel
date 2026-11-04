@@ -1,14 +1,10 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
-use App\Models\Establishment;
 use Illuminate\Support\Facades\Route;
 
 Route::livewire('/', 'pages::catalog.index')->name('home');
 Route::livewire('establecimiento/{establishment:slug}', 'pages::catalog.show')->name('catalog.show');
-Route::get('establecimientos/{id}', function (string $id) {
-    return redirect()->route('catalog.show', Establishment::findOrFail($id), 301);
-})->whereNumber('id')->name('catalog.legacy');
 Route::livewire('carrito', 'pages::cart.index')->name('cart.index');
 Route::livewire('checkout', 'pages::checkout.index')->name('checkout');
 Route::livewire('pedido/{token}', 'pages::tracking.show')

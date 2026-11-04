@@ -1,82 +1,45 @@
 <?php
 
-use App\Models\Establishment;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
-use Livewire\WithPagination;
 
-new #[Layout('layouts.public')] #[Title('Catálogo')] class extends Component {
-    use WithPagination;
-
-    public string $search = '';
-
-    public function updatedSearch(): void
-    {
-        $this->resetPage();
-    }
-
-    public function with(): array
-    {
-        $search = trim($this->search);
-
-        return [
-            'establishments' => Establishment::query()
-                ->where('status', 'active')
-                ->when($search !== '', function ($query) use ($search) {
-                    $query->where(function ($query) use ($search) {
-                        $query->where('name', 'like', "%{$search}%")
-                            ->orWhere('type', 'like', "%{$search}%");
-                    });
-                })
-                ->orderBy('name')
-                ->paginate(12),
-        ];
-    }
+/*
+ * Presentación de la plataforma. No muestra establecimientos: cada negocio
+ * comparte con sus clientes el enlace de su propia página.
+ */
+new #[Layout('layouts.public')] #[Title('Asistente virtual para negocios')] class extends Component {
+    //
 };
 ?>
 
-<div class="flex flex-col gap-6">
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h1 class="text-2xl font-bold text-zinc-900">Establecimientos</h1>
-            <p class="mt-1 text-sm text-zinc-500">Elige un establecimiento para ver su catálogo.</p>
-        </div>
+<div class="flex flex-col gap-8">
+    <section class="rounded-2xl bg-gradient-to-r from-indigo-700 to-violet-600 p-8 text-white shadow-sm sm:p-12">
+        <p class="text-sm font-semibold uppercase tracking-wide text-indigo-100">NYVA</p>
+        <h1 class="mt-2 max-w-2xl text-3xl font-bold sm:text-4xl">Asistente virtual para la atención al cliente y la gestión de pedidos</h1>
+        <p class="mt-4 max-w-2xl text-indigo-100">
+            Cada negocio tiene su propia página con su catálogo, sus horarios y un asistente que atiende y recibe pedidos.
+        </p>
 
-        <input
-            type="search"
-            wire:model.live.debounce.300ms="search"
-            placeholder="Buscar establecimiento..."
-            aria-label="Buscar establecimiento"
-            class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm sm:w-72"
-        >
-    </div>
+        <a href="{{ route('login') }}" class="mt-6 inline-flex rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-indigo-700 hover:bg-indigo-50">
+            Acceso para negocios
+        </a>
+    </section>
 
-    @if ($establishments->isEmpty())
-        <div class="rounded-xl border border-dashed border-zinc-300 bg-white p-10 text-center text-sm text-zinc-500">
-            No se encontraron establecimientos.
-        </div>
-    @else
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            @foreach ($establishments as $establishment)
-                <a
-                    href="{{ route('catalog.show', $establishment) }}"
-                    wire:navigate
-                    wire:key="establishment-{{ $establishment->id }}"
-                    class="flex flex-col gap-2 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm transition hover:border-indigo-300"
-                >
-                    <span class="text-xs font-medium uppercase tracking-wide text-indigo-700">{{ $establishment->type }}</span>
-                    <span class="text-lg font-semibold text-zinc-900">{{ $establishment->name }}</span>
+    <section class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        @foreach ([
+            ['Página propia', 'Cada establecimiento comparte el enlace de su página con sus clientes.'],
+            ['Asistente virtual', 'Responde preguntas con la información real del negocio y toma pedidos.'],
+            ['Pedidos en línea', 'El cliente pide sin crear una cuenta y sigue su pedido con un enlace seguro.'],
+        ] as [$title, $text])
+            <article class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+                <h2 class="font-semibold text-zinc-900">{{ $title }}</h2>
+                <p class="mt-2 text-sm text-zinc-600">{{ $text }}</p>
+            </article>
+        @endforeach
+    </section>
 
-                    @if ($establishment->description)
-                        <span class="line-clamp-2 text-sm text-zinc-500">{{ $establishment->description }}</span>
-                    @endif
-
-                    <span class="mt-auto pt-2 text-sm text-zinc-600">{{ $establishment->address }}</span>
-                </a>
-            @endforeach
-        </div>
-
-        {{ $establishments->links() }}
-    @endif
+    <p class="text-center text-sm text-zinc-500">
+        ¿Buscas un negocio? Pídele el enlace de su página.
+    </p>
 </div>

@@ -31,6 +31,11 @@ new #[Layout('layouts.public')] #[Title('Carrito')] class extends Component {
         $this->dispatch('cart-updated');
     }
 
+    public function rendering($view): void
+    {
+        $view->layoutData(['publicEstablishment' => Establishment::query()->where('status', 'active')->find(app(Cart::class)->establishmentId())]);
+    }
+
     public function with(Cart $cart): array
     {
         $lines = $cart->lines();
@@ -60,7 +65,6 @@ new #[Layout('layouts.public')] #[Title('Carrito')] class extends Component {
     @if ($lines->isEmpty())
         <div class="rounded-xl border border-dashed border-zinc-300 bg-white p-10 text-center">
             <p class="font-medium text-zinc-700">Tu carrito está vacío.</p>
-            <a href="{{ route('home') }}" wire:navigate class="mt-3 inline-block text-sm font-semibold text-indigo-700 hover:underline">Ver establecimientos</a>
         </div>
     @else
         @if ($hasUnavailable)

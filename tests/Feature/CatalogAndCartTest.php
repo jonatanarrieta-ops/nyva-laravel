@@ -6,15 +6,35 @@ use App\Services\Cart;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Livewire\Livewire;
 
-test('the catalog home lists only active establishments', function () {
+test('the home page never lists the establishments', function () {
     [, $establishment] = catalogFixture();
-    [, $inactive] = catalogFixture();
-    $inactive->forceFill(['name' => 'Local cerrado', 'status' => 'inactive'])->save();
 
     $this->get(route('home'))
         ->assertOk()
-        ->assertSee($establishment->name)
-        ->assertDontSee('Local cerrado');
+        ->assertDontSee($establishment->name)
+        ->assertDontSee($establishment->slug);
+});
+
+test('a business page only links to that business', function () {
+    [, $establishment] = catalogFixture();
+    [, $other] = catalogFixture();
+    $other->update(['name' => 'Otro negocio']);
+
+    $this->get(route('catalog.show', $establishment))
+        ->assertOk()
+        ->assertSee(route('catalog.show', $establishment), false)
+        ->assertDontSee('Otro negocio')
+        ->assertDontSee($other->slug)
+        ->assertDontSee('>Catálogo</a>', false);
+});
+
+test('the cart and the tracking page show the business of the order', function () {
+    [, $establishment, , $product] = catalogFixture();
+    app(Cart::class)->add($product);
+    $order = makeOrder($establishment->id);
+
+    $this->get(route('cart.index'))->assertSee(route('catalog.show', $establishment), false);
+    $this->get(route('orders.track', $order->public_token))->assertSee(route('catalog.show', $establishment), false);
 });
 
 test('the public catalog shows the establishment organized by category', function () {

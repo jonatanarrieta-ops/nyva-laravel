@@ -53,6 +53,11 @@ new #[Layout('layouts.public')] #[Title('Confirmar pedido')] class extends Compo
             : $this->redirectRoute('orders.track', ['token' => $order->public_token], navigate: true);
     }
 
+    public function rendering($view): void
+    {
+        $view->layoutData(['publicEstablishment' => Establishment::query()->where('status', 'active')->find(app(Cart::class)->establishmentId())]);
+    }
+
     public function with(Cart $cart): array
     {
         $lines = $cart->lines();

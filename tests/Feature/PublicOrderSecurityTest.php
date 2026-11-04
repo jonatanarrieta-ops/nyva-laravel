@@ -125,10 +125,10 @@ test('panel orders do not depend on the public schedule', function () use ($cust
     expect($order->channel)->toBe('panel');
 });
 
-test('legacy public links redirect to the slug', function () {
+test('businesses cannot be discovered by their number', function () {
     [, $establishment] = catalogFixture();
 
-    $this->get('/establecimientos/'.$establishment->id)->assertRedirect(route('catalog.show', $establishment));
+    $this->get('/establecimientos/'.$establishment->id)->assertNotFound();
 });
 
 test('an owner cannot switch to a foreign establishment', function () {

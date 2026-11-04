@@ -75,7 +75,6 @@
                     @endif
                 @else
                     <flux:sidebar.group heading="CLIENTE" class="grid">
-                        <flux:sidebar.item icon="building-storefront" :href="route('home')" :current="request()->routeIs('home')" wire:navigate>Catálogo</flux:sidebar.item>
                         <flux:sidebar.item icon="clipboard-document-list" :href="route('my-orders.index')" :current="request()->routeIs('my-orders.*')" wire:navigate>Mis pedidos</flux:sidebar.item>
                     </flux:sidebar.group>
                 @endif

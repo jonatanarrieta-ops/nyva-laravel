@@ -30,7 +30,6 @@ new #[Layout('layouts.public')] #[Title('Mis pedidos')] class extends Component 
     @if ($orders->isEmpty())
         <div class="rounded-xl border border-dashed border-zinc-300 bg-white p-10 text-center">
             <p class="font-medium text-zinc-700">Todavía no has realizado pedidos.</p>
-            <a href="{{ route('home') }}" wire:navigate class="mt-3 inline-block text-sm font-semibold text-indigo-700 hover:underline">Ver establecimientos</a>
         </div>
     @else
         <div class="flex flex-col gap-3">
