@@ -112,7 +112,7 @@ new #[Layout('layouts.app')] #[Title('Chatbot')] class extends Component {
         </form>
 
         <div class="flex flex-col gap-4">
-            <x-stat-card label="Conversaciones" :value="$conversations" hint="Con clientes de tu página pública" />
+            <x-stat-card label="Conversaciones" :value="$conversations" hint="Con clientes de tu página pública" icon="chat-bubble-left-right" />
 
             <section class="nyva-card p-5 text-sm">
                 <h2 class="font-semibold">Modo de respuesta</h2>

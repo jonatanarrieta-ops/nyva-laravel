@@ -45,10 +45,10 @@ new #[Layout('layouts.app')] #[Title('Administración')] class extends Component
     <x-page-header title="Panel de plataforma" subtitle="Supervisión global de NYVA." />
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <x-stat-card label="Establecimientos" :value="$establishments" :hint="$activeEstablishments.' activos · '.$suspended.' suspendidos'" />
-        <x-stat-card label="Suscripciones vigentes" :value="$activeSubscriptions" :hint="$expiring->count().' por vencer en 7 días'" tone="green" />
-        <x-stat-card label="Usuarios" :value="$users" hint="Cuentas registradas" tone="violet" />
-        <x-stat-card label="Pedidos" :value="$orders" :hint="'$ '.number_format((float) $sales, 0, ',', '.').' en ventas'" tone="amber" />
+        <x-stat-card label="Establecimientos" :value="$establishments" :hint="$activeEstablishments.' activos · '.$suspended.' suspendidos'" icon="building-storefront" />
+        <x-stat-card label="Suscripciones vigentes" :value="$activeSubscriptions" :hint="$expiring->count().' por vencer en 7 días'" tone="green" icon="credit-card" />
+        <x-stat-card label="Usuarios" :value="$users" hint="Cuentas registradas" tone="violet" icon="users" />
+        <x-stat-card label="Pedidos" :value="$orders" :hint="'$ '.number_format((float) $sales, 0, ',', '.').' en ventas'" tone="amber" icon="clipboard-document-list" />
     </div>
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
