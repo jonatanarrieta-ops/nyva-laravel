@@ -184,298 +184,103 @@ new #[Layout('layouts.app')]
     };
 ?>
 
-<div class="flex flex-col gap-6 p-4 md:p-6">
-
-    <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-            <h1 class="text-2xl font-semibold tracking-tight">
-                Categorías
-            </h1>
-
-            <p class="mt-1 text-sm text-zinc-500">
-                Organiza los productos de tus establecimientos.
-            </p>
-        </div>
-
-        <button
-            type="button"
-            wire:click="createCategory"
-            class="nyva-btn"
-        >
-            <span>+</span>
-            Nueva categoría
-        </button>
-    </div>
+<div class="flex flex-col gap-6 p-4 md:p-6 lg:p-8">
+    <x-page-header title="Categorías" subtitle="Organiza los productos de tus establecimientos.">
+        <x-ui.button wire:click="createCategory" icon="plus">Nueva categoría</x-ui.button>
+    </x-page-header>
 
     @if (session('category-message'))
-        <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
-            {{ session('category-message') }}
-        </div>
+        <x-ui.alert>{{ session('category-message') }}</x-ui.alert>
     @endif
 
     @if (session('category-error'))
-        <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
-            {{ session('category-error') }}
-        </div>
+        <x-ui.alert tone="error">{{ session('category-error') }}</x-ui.alert>
     @endif
 
     @if ($showForm)
-        <section class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
-            <div class="mb-5">
-                <h2 class="text-lg font-semibold">
-                    {{ $categoryId ? 'Editar categoría' : 'Nueva categoría' }}
-                </h2>
-
-                <p class="mt-1 text-sm text-zinc-500">
-                    Completa los datos de la categoría.
-                </p>
-            </div>
+        <section class="nyva-card p-5 md:p-6">
+            <x-ui.section-header :title="$categoryId ? 'Editar categoría' : 'Nueva categoría'" subtitle="Completa los datos de la categoría." class="mb-5" />
 
             @if ($establishments->isEmpty())
-                <div class="rounded-lg bg-amber-50 p-4 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-200">
-                    Primero debes registrar un establecimiento para poder crear categorías.
-                </div>
+                <x-ui.alert tone="warning">Primero debes registrar un establecimiento para poder crear categorías.</x-ui.alert>
             @else
-                <form wire:submit="save" class="flex flex-col gap-5">
+                <form wire:submit="save" class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                    <x-ui.select label="Establecimiento" name="establishmentId" wire:model="establishmentId">
+                        <option value="">Selecciona un establecimiento</option>
+                        @foreach ($establishments as $establishment)
+                            <option value="{{ $establishment->id }}">{{ $establishment->name }}</option>
+                        @endforeach
+                    </x-ui.select>
 
-                    <div>
-                        <label for="establishmentId" class="mb-1.5 block text-sm font-medium">
-                            Establecimiento
-                        </label>
+                    <x-ui.input label="Nombre" name="name" wire:model="name" maxlength="100" placeholder="Ej. Bebidas, Postres, Entradas" />
 
-                        <select
-                            id="establishmentId"
-                            wire:model="establishmentId"
-                            class="nyva-input"
-                        >
-                            <option value="">Selecciona un establecimiento</option>
-
-                            @foreach ($establishments as $establishment)
-                                <option value="{{ $establishment->id }}">
-                                    {{ $establishment->name }}
-                                </option>
-                            @endforeach
-                        </select>
-
-                        @error('establishmentId')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+                    <div class="md:col-span-2">
+                        <label for="description" class="nyva-label">Descripción <span class="font-normal text-slate-400">(opcional)</span></label>
+                        <textarea id="description" wire:model="description" rows="3" maxlength="5000" placeholder="Describe brevemente esta categoría..." class="nyva-input"></textarea>
+                        @error('description') <p class="nyva-error">{{ $message }}</p> @enderror
                     </div>
 
-                    <div>
-                        <label for="name" class="mb-1.5 block text-sm font-medium">
-                            Nombre
-                        </label>
-
-                        <input
-                            id="name"
-                            type="text"
-                            wire:model="name"
-                            maxlength="100"
-                            placeholder="Ej. Bebidas, Postres, Entradas"
-                            class="nyva-input"
-                        >
-
-                        @error('name')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="description" class="mb-1.5 block text-sm font-medium">
-                            Descripción <span class="font-normal text-zinc-400">(opcional)</span>
-                        </label>
-
-                        <textarea
-                            id="description"
-                            wire:model="description"
-                            rows="3"
-                            maxlength="5000"
-                            placeholder="Describe brevemente esta categoría..."
-                            class="nyva-input"
-                        ></textarea>
-
-                        @error('description')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <label class="flex items-center gap-3 text-sm">
-                        <input
-                            type="checkbox"
-                            wire:model="status"
-                            class="rounded border-zinc-300"
-                        >
-
+                    <label class="flex items-center gap-3 text-sm md:col-span-2">
+                        <input type="checkbox" wire:model="status" class="size-4 rounded border-slate-300 text-blue-700">
                         <span>
-                            <span class="block font-medium">Categoría activa</span>
-                            <span class="block text-zinc-500">Permite mantener la categoría habilitada.</span>
+                            <span class="block font-medium text-slate-700">Categoría activa</span>
+                            <span class="block text-slate-500">Se muestra en la página pública.</span>
                         </span>
                     </label>
 
-                    <div class="flex flex-wrap justify-end gap-3 border-t border-zinc-200 pt-4 dark:border-zinc-700">
-                        <button
-                            type="button"
-                            wire:click="cancelForm"
-                            class="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
-                        >
-                            Cancelar
-                        </button>
-
-                        @if ($establishments->isNotEmpty())
-                            <button
-                                type="submit"
-                                wire:loading.attr="disabled"
-                                wire:target="save"
-                                class="nyva-btn"
-                            >
-                                <span wire:loading.remove wire:target="save">
-                                    {{ $categoryId ? 'Guardar cambios' : 'Crear categoría' }}
-                                </span>
-
-                                <span wire:loading wire:target="save">
-                                    Guardando...
-                                </span>
-                            </button>
-                        @endif
+                    <div class="flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end md:col-span-2">
+                        <x-ui.button variant="secondary" wire:click="cancelForm">Cancelar</x-ui.button>
+                        <x-ui.button type="submit" target="save">{{ $categoryId ? 'Guardar cambios' : 'Crear categoría' }}</x-ui.button>
                     </div>
                 </form>
             @endif
         </section>
     @endif
 
-    <section class="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+    <section class="nyva-card overflow-hidden">
+        <div class="grid grid-cols-1 gap-3 border-b border-slate-100 p-4 sm:grid-cols-[1fr_16rem]">
+            <x-ui.input name="search" type="search" wire:model.live.debounce.300ms="search" placeholder="Buscar categorías..." aria-label="Buscar categorías" />
 
-        <div class="flex flex-col gap-3 border-b border-zinc-200 p-4 dark:border-zinc-700 sm:flex-row">
-            <div class="flex-1">
-                <input
-                    type="search"
-                    wire:model.live.debounce.300ms="search"
-                    placeholder="Buscar categorías..."
-                    aria-label="Buscar categorías"
-                    class="nyva-input"
-                >
-            </div>
-
-            <div class="sm:w-64">
-                <select
-                    wire:model.live="filterEstablishment"
-                    aria-label="Filtrar por establecimiento"
-                    class="nyva-input"
-                >
-                    <option value="">Todos los establecimientos</option>
-
-                    @foreach ($establishments as $establishment)
-                        <option value="{{ $establishment->id }}">
-                            {{ $establishment->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+            <x-ui.select name="filterEstablishment" wire:model.live="filterEstablishment" aria-label="Filtrar por establecimiento">
+                <option value="">Todos los establecimientos</option>
+                @foreach ($establishments as $establishment)
+                    <option value="{{ $establishment->id }}">{{ $establishment->name }}</option>
+                @endforeach
+            </x-ui.select>
         </div>
 
         @if ($categories->isEmpty())
-            <div class="px-6 py-14 text-center">
-                <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 text-xl dark:bg-zinc-800">
-                    #
-                </div>
-
-                <h3 class="font-semibold">
-                    @if ($search !== '' || $filterEstablishment !== '')
-                        No se encontraron categorías
-                    @else
-                        Todavía no tienes categorías
-                    @endif
-                </h3>
-
-                <p class="mt-1 text-sm text-zinc-500">
-                    @if ($search !== '' || $filterEstablishment !== '')
-                        Prueba con otra búsqueda o cambia el filtro.
-                    @else
-                        Crea tu primera categoría para organizar tus productos.
-                    @endif
-                </p>
-
+            <x-ui.empty-state
+                icon="archive-box"
+                :title="$search !== '' || $filterEstablishment !== '' ? 'No se encontraron categorías' : 'Todavía no tienes categorías'"
+                :description="$search !== '' || $filterEstablishment !== '' ? 'Prueba con otra búsqueda o cambia el filtro.' : 'Crea tu primera categoría para organizar tus productos.'"
+            >
                 @if ($search === '' && $filterEstablishment === '')
-                    <button
-                        type="button"
-                        wire:click="createCategory"
-                        class="nyva-btn"
-                    >
-                        Crear primera categoría
-                    </button>
+                    <x-ui.button wire:click="createCategory" icon="plus">Crear primera categoría</x-ui.button>
                 @endif
-            </div>
+            </x-ui.empty-state>
         @else
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-800/60">
-                        <tr>
-                            <th class="px-5 py-3 font-medium">Categoría</th>
-                            <th class="px-5 py-3 font-medium">Establecimiento</th>
-                            <th class="px-5 py-3 font-medium">Productos</th>
-                            <th class="px-5 py-3 font-medium">Estado</th>
-                            <th class="px-5 py-3 text-right font-medium">Acciones</th>
-                        </tr>
+            <div class="hidden overflow-x-auto md:block">
+                <table class="nyva-table">
+                    <thead>
+                        <tr><th>Categoría</th><th>Establecimiento</th><th>Productos</th><th>Estado</th><th class="text-right">Acciones</th></tr>
                     </thead>
-
-                    <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
+                    <tbody>
                         @foreach ($categories as $category)
-                            <tr wire:key="category-{{ $category->id }}" class="hover:bg-zinc-50/70 dark:hover:bg-zinc-800/40">
-                                <td class="px-5 py-4">
-                                    <div class="font-medium">
-                                        {{ $category->name }}
-                                    </div>
-
+                            <tr wire:key="category-{{ $category->id }}">
+                                <td>
+                                    <div class="font-semibold text-slate-800">{{ $category->name }}</div>
                                     @if ($category->description)
-                                        <div class="mt-1 max-w-xs truncate text-xs text-zinc-500">
-                                            {{ $category->description }}
-                                        </div>
+                                        <div class="mt-0.5 max-w-xs truncate text-xs text-slate-500">{{ $category->description }}</div>
                                     @endif
                                 </td>
-
-                                <td class="px-5 py-4 text-zinc-600 dark:text-zinc-300">
-                                    {{ $category->establishment?->name ?? 'Sin establecimiento' }}
-                                </td>
-
-                                <td class="px-5 py-4">
-                                    <span class="inline-flex rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium dark:bg-zinc-800">
-                                        {{ $category->products_count }}
-                                    </span>
-                                </td>
-
-                                <td class="px-5 py-4">
-                                    @if ($category->status === 'active')
-                                        <span class="inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                                            Activa
-                                        </span>
-                                    @else
-                                        <span class="inline-flex rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-                                            Inactiva
-                                        </span>
-                                    @endif
-                                </td>
-
-                                <td class="px-5 py-4">
-                                    <div class="flex items-center justify-end gap-2">
-                                        <button
-                                            type="button"
-                                            wire:click="editCategory({{ $category->id }})"
-                                            class="rounded-lg border border-zinc-300 px-3 py-1.5 text-xs font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
-                                        >
-                                            Editar
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            wire:click="deleteCategory({{ $category->id }})"
-                                            wire:confirm="¿Seguro que deseas eliminar esta categoría?"
-                                            wire:loading.attr="disabled"
-                                            wire:target="deleteCategory({{ $category->id }})"
-                                            class="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 dark:border-red-900 dark:hover:bg-red-950"
-                                        >
-                                            Eliminar
-                                        </button>
+                                <td>{{ $category->establishment?->name ?? 'Sin establecimiento' }}</td>
+                                <td><x-ui.badge>{{ $category->products_count }}</x-ui.badge></td>
+                                <td><x-ui.badge :tone="$category->status === 'active' ? 'green' : 'slate'">{{ $category->status === 'active' ? 'Activa' : 'Inactiva' }}</x-ui.badge></td>
+                                <td>
+                                    <div class="flex justify-end gap-4 whitespace-nowrap">
+                                        <button type="button" wire:click="editCategory({{ $category->id }})" class="nyva-link">Editar</button>
+                                        <button type="button" wire:click="deleteCategory({{ $category->id }})" wire:confirm="¿Seguro que deseas eliminar esta categoría?" wire:loading.attr="disabled" wire:target="deleteCategory({{ $category->id }})" class="nyva-link-danger">Eliminar</button>
                                     </div>
                                 </td>
                             </tr>
@@ -484,9 +289,25 @@ new #[Layout('layouts.app')]
                 </table>
             </div>
 
-            <div class="border-t border-zinc-200 p-4 dark:border-zinc-700">
-                {{ $categories->links() }}
+            <div class="divide-y divide-slate-100 md:hidden">
+                @foreach ($categories as $category)
+                    <div wire:key="category-card-{{ $category->id }}" class="flex flex-col gap-2 p-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <p class="font-semibold text-slate-800">{{ $category->name }}</p>
+                                <p class="text-xs text-slate-500">{{ $category->establishment?->name }} · {{ $category->products_count }} productos</p>
+                            </div>
+                            <x-ui.badge :tone="$category->status === 'active' ? 'green' : 'slate'">{{ $category->status === 'active' ? 'Activa' : 'Inactiva' }}</x-ui.badge>
+                        </div>
+                        <div class="flex gap-4 text-sm">
+                            <button type="button" wire:click="editCategory({{ $category->id }})" class="nyva-link">Editar</button>
+                            <button type="button" wire:click="deleteCategory({{ $category->id }})" wire:confirm="¿Seguro que deseas eliminar esta categoría?" class="nyva-link-danger">Eliminar</button>
+                        </div>
+                    </div>
+                @endforeach
             </div>
+
+            <div class="border-t border-slate-100 p-4">{{ $categories->links() }}</div>
         @endif
     </section>
 </div>

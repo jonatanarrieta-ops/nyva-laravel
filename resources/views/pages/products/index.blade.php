@@ -250,267 +250,140 @@ new #[Layout('layouts.app')]
     };
 ?>
 
-<div class="flex flex-col gap-6 p-4 md:p-6">
-    <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-            <h1 class="text-2xl font-semibold tracking-tight">Productos</h1>
-            <p class="mt-1 text-sm text-zinc-500">
-                Administra los productos de tus establecimientos.
-            </p>
-        </div>
-
-        <button
-            type="button"
-            wire:click="createProduct"
-            class="nyva-btn"
-        >
-            <span>+</span> Nuevo producto
-        </button>
-    </div>
+<div class="flex flex-col gap-6 p-4 md:p-6 lg:p-8">
+    <x-page-header title="Productos" subtitle="Administra los productos de tus establecimientos.">
+        <x-ui.button wire:click="createProduct" icon="plus">Nuevo producto</x-ui.button>
+    </x-page-header>
 
     @if (session('product-message'))
-        <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
-            {{ session('product-message') }}
-        </div>
+        <x-ui.alert>{{ session('product-message') }}</x-ui.alert>
     @endif
 
     @if (session('product-error'))
-        <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
-            {{ session('product-error') }}
-        </div>
+        <x-ui.alert tone="error">{{ session('product-error') }}</x-ui.alert>
     @endif
 
     @if ($showForm)
-        <section class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
-            <h2 class="mb-5 text-lg font-semibold">
-                {{ $productId ? 'Editar producto' : 'Nuevo producto' }}
-            </h2>
+        <section class="nyva-card p-5 md:p-6">
+            <x-ui.section-header :title="$productId ? 'Editar producto' : 'Nuevo producto'" subtitle="Completa la información que verán tus clientes." class="mb-5" />
 
             @if ($formCategories->isEmpty())
-                <div class="rounded-lg bg-amber-50 p-4 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-200">
-                    Primero debes crear un establecimiento y al menos una categoría.
-                </div>
+                <x-ui.alert tone="warning">Primero debes crear un establecimiento y al menos una categoría.</x-ui.alert>
             @else
-                <form wire:submit="save" class="flex flex-col gap-5">
-                    <div>
-                        <label for="categoryId" class="mb-1.5 block text-sm font-medium">Categoría</label>
-                        <select
-                            id="categoryId"
-                            wire:model="categoryId"
-                            class="nyva-input"
-                        >
-                            <option value="">Selecciona una categoría</option>
-                            @foreach ($formCategories as $category)
-                                <option value="{{ $category->id }}">
-                                    {{ $category->establishment->name }} — {{ $category->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('categoryId') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                    </div>
+                <form wire:submit="save" class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                    <x-ui.select label="Categoría" name="categoryId" wire:model="categoryId">
+                        <option value="">Selecciona una categoría</option>
+                        @foreach ($formCategories as $category)
+                            <option value="{{ $category->id }}">{{ $category->establishment->name }} — {{ $category->name }}</option>
+                        @endforeach
+                    </x-ui.select>
+
+                    <x-ui.input label="Nombre" name="name" wire:model="name" maxlength="150" />
+
+                    <x-ui.input label="Precio" name="price" type="number" min="0" step="0.01" wire:model="price" />
 
                     <div>
-                        <label for="name" class="mb-1.5 block text-sm font-medium">Nombre</label>
-                        <input
-                            id="name"
-                            type="text"
-                            wire:model="name"
-                            maxlength="150"
-                            class="nyva-input"
-                        />
-                        @error('name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                    </div>
-
-                    <div>
-                        <label for="description" class="mb-1.5 block text-sm font-medium">Descripción</label>
-                        <textarea
-                            id="description"
-                            wire:model="description"
-                            rows="3"
-                            class="nyva-input"
-                        ></textarea>
-                        @error('description') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                    </div>
-
-                    <div>
-                        <label for="price" class="mb-1.5 block text-sm font-medium">Precio</label>
-                        <input
-                            id="price"
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            wire:model="price"
-                            class="nyva-input"
-                        />
-                        @error('price') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                    </div>
-
-                    <div>
-                        <label for="image" class="mb-1.5 block text-sm font-medium">
-                            Imagen <span class="font-normal text-zinc-400">(JPG, PNG o WEBP, máximo 2 MB)</span>
-                        </label>
+                        <label for="image" class="nyva-label">Imagen</label>
 
                         @if ($currentImage)
                             <div class="mb-2 flex items-center gap-3">
-                                <img src="{{ $currentImage }}" alt="Imagen actual" onerror="this.remove()" class="size-20 rounded-lg object-cover">
-                                <button type="button" wire:click="removeImage" wire:confirm="¿Eliminar la imagen?" class="text-sm font-medium text-red-600 hover:underline">Eliminar imagen</button>
+                                <img src="{{ $currentImage }}" alt="Imagen actual" onerror="this.remove()" class="size-16 rounded-lg object-cover ring-1 ring-slate-200">
+                                <button type="button" wire:click="removeImage" wire:confirm="¿Eliminar la imagen?" class="nyva-link-danger text-sm">Eliminar imagen</button>
                             </div>
                         @endif
 
-                        <input
-                            id="image"
-                            type="file"
-                            wire:model="image"
-                            accept=".jpg,.jpeg,.png,.webp"
-                            class="nyva-input"
-                        />
-                        <p wire:loading wire:target="image" class="mt-1 text-sm text-zinc-500">Cargando imagen...</p>
-                        @error('image') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                        <input id="image" type="file" wire:model="image" accept=".jpg,.jpeg,.png,.webp" class="nyva-input file:me-3 file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-1 file:text-sm file:font-semibold file:text-blue-700">
+                        <p class="mt-1.5 text-xs text-slate-500">JPG, PNG o WEBP, máximo 2 MB.</p>
+                        <p wire:loading wire:target="image" class="mt-1 text-sm text-blue-700">Cargando imagen...</p>
+                        @error('image') <p class="nyva-error">{{ $message }}</p> @enderror
                     </div>
 
-                    <div class="flex flex-col gap-3 sm:flex-row sm:gap-6">
-                        <label class="flex items-center gap-2 text-sm">
-                            <input type="checkbox" wire:model="available" class="rounded border-zinc-300" />
+                    <div class="md:col-span-2">
+                        <label for="description" class="nyva-label">Descripción</label>
+                        <textarea id="description" wire:model="description" rows="3" class="nyva-input"></textarea>
+                        @error('description') <p class="nyva-error">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div class="flex flex-col gap-3 sm:flex-row sm:gap-6 md:col-span-2">
+                        <label class="flex items-center gap-2 text-sm text-slate-700">
+                            <input type="checkbox" wire:model="available" class="size-4 rounded border-slate-300 text-blue-700" />
                             Disponible para pedidos
                         </label>
-                        <label class="flex items-center gap-2 text-sm">
-                            <input type="checkbox" wire:model="status" class="rounded border-zinc-300" />
-                            Activo
+                        <label class="flex items-center gap-2 text-sm text-slate-700">
+                            <input type="checkbox" wire:model="status" class="size-4 rounded border-slate-300 text-blue-700" />
+                            Visible en la página pública
                         </label>
                     </div>
 
-                    <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                        <button
-                            type="button"
-                            wire:click="cancelForm"
-                            class="rounded-lg border border-zinc-300 px-4 py-2.5 text-sm font-medium dark:border-zinc-700"
-                        >
-                            Cancelar
-                        </button>
-                        <button
-                            type="submit"
-                            class="nyva-btn"
-                        >
-                            Guardar producto
-                        </button>
+                    <div class="flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end md:col-span-2">
+                        <x-ui.button variant="secondary" wire:click="cancelForm">Cancelar</x-ui.button>
+                        <x-ui.button type="submit" target="save, image">Guardar producto</x-ui.button>
                     </div>
                 </form>
             @endif
         </section>
     @endif
 
-    <section class="flex flex-col gap-4 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
-        <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
-            <div>
-                <label for="search" class="mb-1.5 block text-sm font-medium">Buscar</label>
-                <input
-                    id="search"
-                    type="search"
-                    wire:model.live.debounce.300ms="search"
-                    placeholder="Nombre o descripción..."
-                    class="nyva-input"
-                />
-            </div>
+    <section class="nyva-card grid grid-cols-1 gap-3 p-4 md:grid-cols-3">
+        <x-ui.input label="Buscar" name="search" type="search" wire:model.live.debounce.300ms="search" placeholder="Nombre o descripción..." />
 
-            <div>
-                <label for="filterEstablishment" class="mb-1.5 block text-sm font-medium">Establecimiento</label>
-                <select
-                    id="filterEstablishment"
-                    wire:model.live="filterEstablishment"
-                    class="nyva-input"
-                >
-                    <option value="">Todos los establecimientos</option>
-                    @foreach ($establishments as $establishment)
-                        <option value="{{ $establishment->id }}">{{ $establishment->name }}</option>
-                    @endforeach
-                </select>
-            </div>
+        <x-ui.select label="Establecimiento" name="filterEstablishment" wire:model.live="filterEstablishment">
+            <option value="">Todos los establecimientos</option>
+            @foreach ($establishments as $establishment)
+                <option value="{{ $establishment->id }}">{{ $establishment->name }}</option>
+            @endforeach
+        </x-ui.select>
 
-            <div>
-                <label for="filterCategory" class="mb-1.5 block text-sm font-medium">Categoría</label>
-                <select
-                    id="filterCategory"
-                    wire:model.live="filterCategory"
-                    class="nyva-input"
-                >
-                    <option value="">Todas las categorías</option>
-                    @foreach ($categories as $category)
-                        <option value="{{ $category->id }}">{{ $category->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-        </div>
-
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
-                <thead class="border-b border-zinc-200 text-xs uppercase text-zinc-500 dark:border-zinc-700">
-                    <tr>
-                        <th class="px-3 py-3">Producto</th>
-                        <th class="px-3 py-3">Establecimiento</th>
-                        <th class="px-3 py-3">Categoría</th>
-                        <th class="px-3 py-3">Precio</th>
-                        <th class="px-3 py-3">Disponible</th>
-                        <th class="px-3 py-3">Estado</th>
-                        <th class="px-3 py-3 text-right">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
-                    @forelse ($products as $product)
-                        <tr>
-                            <td class="px-3 py-3">
-                                <div class="font-medium">{{ $product->name }}</div>
-                                @if ($product->description)
-                                    <div class="mt-1 max-w-xs truncate text-xs text-zinc-500">
-                                        {{ $product->description }}
-                                    </div>
-                                @endif
-                            </td>
-                            <td class="px-3 py-3">{{ $product->category->establishment->name }}</td>
-                            <td class="px-3 py-3">{{ $product->category->name }}</td>
-                            <td class="px-3 py-3 whitespace-nowrap">${{ number_format((float) $product->price, 2, ',', '.') }}</td>
-                            <td class="px-3 py-3">
-                                @if ($product->available)
-                                    <span class="text-emerald-600">Sí</span>
-                                @else
-                                    <span class="text-zinc-500">No</span>
-                                @endif
-                            </td>
-                            <td class="px-3 py-3">
-                                @if ($product->status === 'active')
-                                    <span class="text-emerald-600">Activo</span>
-                                @else
-                                    <span class="text-zinc-500">Inactivo</span>
-                                @endif
-                            </td>
-                            <td class="px-3 py-3">
-                                <div class="flex justify-end gap-3 whitespace-nowrap">
-                                    <button type="button" wire:click="editProduct({{ $product->id }})" class="font-medium text-blue-600 hover:underline">
-                                        Editar
-                                    </button>
-                                    <button
-                                        type="button"
-                                        wire:click="deleteProduct({{ $product->id }})"
-                                        wire:confirm="¿Seguro que deseas eliminar este producto?"
-                                        class="font-medium text-red-600 hover:underline"
-                                    >
-                                        Eliminar
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="px-3 py-10 text-center text-zinc-500">
-                                No se encontraron productos.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-
-        <div>
-            {{ $products->links() }}
-        </div>
+        <x-ui.select label="Categoría" name="filterCategory" wire:model.live="filterCategory">
+            <option value="">Todas las categorías</option>
+            @foreach ($categories as $category)
+                <option value="{{ $category->id }}">{{ $category->name }}</option>
+            @endforeach
+        </x-ui.select>
     </section>
+
+    @if ($products->isEmpty())
+        <div class="nyva-card">
+            <x-ui.empty-state icon="shopping-bag" title="No se encontraron productos" description="Crea un producto o cambia los filtros." />
+        </div>
+    @else
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3" wire:loading.class="opacity-60" wire:target="search, filterEstablishment, filterCategory">
+            @foreach ($products as $product)
+                <article wire:key="product-{{ $product->id }}" class="nyva-card flex flex-col overflow-hidden">
+                    <div class="relative flex h-36 items-center justify-center bg-slate-100 text-3xl font-semibold text-slate-300">
+                        @if ($product->imageUrl())
+                            <img src="{{ $product->imageUrl() }}" alt="{{ $product->name }}" loading="lazy" onerror="this.remove()" class="absolute inset-0 size-full object-cover">
+                        @endif
+                        <span aria-hidden="true">{{ mb_substr($product->name, 0, 1) }}</span>
+                    </div>
+
+                    <div class="flex flex-1 flex-col gap-3 p-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <h3 class="truncate font-semibold text-slate-800">{{ $product->name }}</h3>
+                                <p class="truncate text-xs text-slate-500">{{ $product->category->name }} · {{ $product->category->establishment->name }}</p>
+                            </div>
+                            <p class="whitespace-nowrap font-bold text-slate-800">$ {{ number_format((float) $product->price, 0, ',', '.') }}</p>
+                        </div>
+
+                        @if ($product->description)
+                            <p class="line-clamp-2 text-sm text-slate-500">{{ $product->description }}</p>
+                        @endif
+
+                        <div class="flex flex-wrap gap-2">
+                            <x-ui.badge :tone="$product->available ? 'green' : 'slate'">{{ $product->available ? 'Disponible' : 'No disponible' }}</x-ui.badge>
+                            <x-ui.badge :tone="$product->status === 'active' ? 'blue' : 'slate'">{{ $product->status === 'active' ? 'Activo' : 'Inactivo' }}</x-ui.badge>
+                        </div>
+
+                        <div class="mt-auto flex justify-end gap-4 border-t border-slate-100 pt-3 text-sm">
+                            <button type="button" wire:click="editProduct({{ $product->id }})" class="nyva-link">Editar</button>
+                            <button type="button" wire:click="deleteProduct({{ $product->id }})" wire:confirm="¿Seguro que deseas eliminar este producto?" class="nyva-link-danger">Eliminar</button>
+                        </div>
+                    </div>
+                </article>
+            @endforeach
+        </div>
+    @endif
+
+    <div>{{ $products->links() }}</div>
 </div>

@@ -275,178 +275,64 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
 };
 ?>
 
-<div class="space-y-6 p-4 md:p-6">
+<div class="flex flex-col gap-6 p-4 md:p-6 lg:p-8">
+    <x-page-header title="Pedidos" subtitle="Administra y registra los pedidos de tus establecimientos.">
+        <x-ui.button wire:click="openCreateForm" icon="plus">Nuevo pedido</x-ui.button>
+    </x-page-header>
 
     @if (session('success'))
-        <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-            {{ session('success') }}
-        </div>
+        <x-ui.alert>{{ session('success') }}</x-ui.alert>
     @endif
 
     @if (session('error'))
-        <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {{ session('error') }}
-        </div>
+        <x-ui.alert tone="error">{{ session('error') }}</x-ui.alert>
     @endif
 
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900">Pedidos</h1>
-            <p class="mt-1 text-sm text-gray-500">
-                Administra y registra los pedidos de tus establecimientos.
-            </p>
-        </div>
-
-        <button
-            type="button"
-            wire:click="openCreateForm"
-            class="nyva-btn"
-        >
-            + Nuevo pedido
-        </button>
-    </div>
-
     @if ($showCreateForm)
-        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-            <div class="mb-6 flex items-center justify-between">
-                <div>
-                    <h2 class="text-lg font-semibold text-gray-900">Nuevo pedido</h2>
-                    <p class="text-sm text-gray-500">
-                        Registra los datos del cliente y agrega los productos.
-                    </p>
-                </div>
+        <section class="nyva-card p-5 md:p-6">
+            <x-ui.section-header title="Nuevo pedido" subtitle="Registra los datos del cliente y agrega los productos." class="mb-5">
+                <button type="button" wire:click="closeCreateForm" class="nyva-link text-sm">Cancelar</button>
+            </x-ui.section-header>
 
-                <button
-                    type="button"
-                    wire:click="closeCreateForm"
-                    class="text-sm font-medium text-gray-500 hover:text-gray-700"
-                >
-                    Cancelar
-                </button>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <x-ui.select label="Establecimiento" name="establishment_id" wire:model.live="establishment_id">
+                    <option value="">Selecciona un establecimiento</option>
+                    @foreach ($establishments as $establishment)
+                        <option value="{{ $establishment->id }}">{{ $establishment->name }}</option>
+                    @endforeach
+                </x-ui.select>
+
+                <x-ui.input label="Nombre del cliente" name="customer_name" wire:model="customer_name" placeholder="Ej. Juan Pérez" />
+                <x-ui.input label="Teléfono" name="customer_phone" type="tel" wire:model="customer_phone" placeholder="Ej. 3001234567" />
+                <x-ui.input label="Dirección de entrega" name="delivery_address" wire:model="delivery_address" placeholder="Ej. Calle 10 # 20-30" />
             </div>
 
-            <div class="grid gap-4 md:grid-cols-2">
+            <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
                 <div>
-                    <label class="mb-1 block text-sm font-medium text-gray-700">
-                        Establecimiento
-                    </label>
-
-                    <select
-                        wire:model.live="establishment_id"
-                        class="nyva-input"
-                    >
-                        <option value="">Selecciona un establecimiento</option>
-
-                        @foreach ($establishments as $establishment)
-                            <option value="{{ $establishment->id }}">
-                                {{ $establishment->name }}
-                            </option>
-                        @endforeach
-                    </select>
-
-                    @error('establishment_id')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div>
-                    <label class="mb-1 block text-sm font-medium text-gray-700">
-                        Nombre del cliente
-                    </label>
-
-                    <input
-                        type="text"
-                        wire:model="customer_name"
-                        class="nyva-input"
-                        placeholder="Ej. Juan Pérez"
-                    >
-
-                    @error('customer_name')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div>
-                    <label class="mb-1 block text-sm font-medium text-gray-700">
-                        Teléfono
-                    </label>
-
-                    <input
-                        type="text"
-                        wire:model="customer_phone"
-                        class="nyva-input"
-                        placeholder="Ej. 3001234567"
-                    >
-
-                    @error('customer_phone')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div>
-                    <label class="mb-1 block text-sm font-medium text-gray-700">
-                        Dirección de entrega
-                    </label>
-
-                    <input
-                        type="text"
-                        wire:model="delivery_address"
-                        class="nyva-input"
-                        placeholder="Ej. Calle 10 # 20-30"
-                    >
-
-                    @error('delivery_address')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-            </div>
-
-            <div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-                <div>
-                    <h3 class="mb-3 text-sm font-semibold text-gray-900">
-                        Productos disponibles
-                    </h3>
+                    <h3 class="mb-3 text-sm font-semibold text-slate-800">Productos disponibles</h3>
 
                     @error('cart')
-                        <div class="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-                            {{ $message }}
-                        </div>
+                        <x-ui.alert tone="error" class="mb-3">{{ $message }}</x-ui.alert>
                     @enderror
 
-                    @if (!$establishment_id)
-                        <div class="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
+                    @if (! $establishment_id)
+                        <div class="rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">
                             Selecciona un establecimiento para ver sus productos.
                         </div>
                     @elseif ($availableProducts->isEmpty())
-                        <div class="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
+                        <div class="rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">
                             No hay productos disponibles para este establecimiento.
                         </div>
                     @else
-                        <div class="space-y-2">
+                        <div class="flex max-h-96 flex-col gap-2 overflow-y-auto pe-1">
                             @foreach ($availableProducts as $product)
-                                <div class="flex items-center justify-between rounded-lg border border-gray-200 p-3">
+                                <div wire:key="available-{{ $product->id }}" class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-3">
                                     <div class="min-w-0">
-                                        <p class="font-medium text-gray-900">
-                                            {{ $product->name }}
-                                        </p>
-
-                                        <p class="text-xs text-gray-500">
-                                            {{ $product->category?->name ?? 'Sin categoría' }}
-                                        </p>
-
-                                        <p class="mt-1 text-sm font-semibold text-gray-700">
-                                            ${{ number_format((float) $product->price, 0, ',', '.') }}
-                                        </p>
+                                        <p class="truncate font-medium text-slate-800">{{ $product->name }}</p>
+                                        <p class="text-xs text-slate-500">{{ $product->category?->name ?? 'Sin categoría' }} · $ {{ number_format((float) $product->price, 0, ',', '.') }}</p>
                                     </div>
 
-                                    <button
-                                        type="button"
-                                        wire:click="addProduct({{ $product->id }})"
-                                        class="ml-4 rounded-lg bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-200"
-                                    >
-                                        Agregar
-                                    </button>
+                                    <x-ui.button variant="secondary" wire:click="addProduct({{ $product->id }})" class="shrink-0 px-3!">Agregar</x-ui.button>
                                 </div>
                             @endforeach
                         </div>
@@ -454,309 +340,143 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
                 </div>
 
                 <div>
-                    <h3 class="mb-3 text-sm font-semibold text-gray-900">
-                        Pedido
-                    </h3>
+                    <h3 class="mb-3 text-sm font-semibold text-slate-800">Pedido</h3>
 
                     @if (empty($cart))
-                        <div class="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
+                        <div class="rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">
                             Todavía no has agregado productos.
                         </div>
                     @else
-                        <div class="space-y-3">
+                        <div class="flex flex-col gap-3">
                             @foreach ($cart as $item)
-                                <div class="rounded-lg border border-gray-200 p-3">
+                                <div wire:key="cart-{{ $item['product_id'] }}" class="rounded-xl border border-slate-200 p-3">
                                     <div class="flex items-start justify-between gap-3">
                                         <div class="min-w-0">
-                                            <p class="font-medium text-gray-900">
-                                                {{ $item['name'] }}
-                                            </p>
-
-                                            <p class="text-sm text-gray-500">
-                                                ${{ number_format((float) $item['price'], 0, ',', '.') }}
-                                                c/u
-                                            </p>
+                                            <p class="font-medium text-slate-800">{{ $item['name'] }}</p>
+                                            <p class="text-xs text-slate-500">$ {{ number_format((float) $item['price'], 0, ',', '.') }} c/u</p>
                                         </div>
-
-                                        <button
-                                            type="button"
-                                            wire:click="removeProduct({{ $item['product_id'] }})"
-                                            class="text-xs font-medium text-red-600 hover:text-red-700"
-                                        >
-                                            Quitar
-                                        </button>
+                                        <button type="button" wire:click="removeProduct({{ $item['product_id'] }})" class="nyva-link-danger text-xs">Quitar</button>
                                     </div>
 
                                     <div class="mt-3 flex items-center justify-between">
                                         <div class="flex items-center gap-2">
-                                            <button
-                                                type="button"
-                                                wire:click="decreaseQuantity({{ $item['product_id'] }})"
-                                                class="h-8 w-8 rounded-lg bg-gray-100 text-sm font-bold text-gray-700 hover:bg-gray-200"
-                                            >
-                                                -
-                                            </button>
-
-                                            <span class="w-8 text-center text-sm font-semibold">
-                                                {{ $item['quantity'] }}
-                                            </span>
-
-                                            <button
-                                                type="button"
-                                                wire:click="increaseQuantity({{ $item['product_id'] }})"
-                                                class="h-8 w-8 rounded-lg bg-gray-100 text-sm font-bold text-gray-700 hover:bg-gray-200"
-                                            >
-                                                +
-                                            </button>
+                                            <button type="button" wire:click="decreaseQuantity({{ $item['product_id'] }})" aria-label="Disminuir cantidad" class="flex size-9 items-center justify-center rounded-lg border border-slate-300 font-bold text-slate-700 hover:bg-slate-50">−</button>
+                                            <span class="w-8 text-center text-sm font-semibold">{{ $item['quantity'] }}</span>
+                                            <button type="button" wire:click="increaseQuantity({{ $item['product_id'] }})" aria-label="Aumentar cantidad" class="flex size-9 items-center justify-center rounded-lg border border-slate-300 font-bold text-slate-700 hover:bg-slate-50">+</button>
                                         </div>
-
-                                        <span class="font-semibold text-gray-900">
-                                            ${{ number_format((float) $item['price'] * (int) $item['quantity'], 0, ',', '.') }}
-                                        </span>
+                                        <span class="font-semibold text-slate-800">$ {{ number_format((float) $item['price'] * (int) $item['quantity'], 0, ',', '.') }}</span>
                                     </div>
                                 </div>
                             @endforeach
                         </div>
 
-                        <div class="mt-4 flex items-center justify-between border-t border-gray-200 pt-4">
-                            <span class="font-semibold text-gray-900">Total</span>
-
-                            <span class="text-xl font-bold text-gray-900">
-                                ${{ number_format($this->cartTotal, 0, ',', '.') }}
-                            </span>
+                        <div class="mt-4 flex items-center justify-between border-t border-slate-200 pt-4">
+                            <span class="font-semibold text-slate-800">Total</span>
+                            <span class="text-xl font-bold text-slate-800">$ {{ number_format($this->cartTotal, 0, ',', '.') }}</span>
                         </div>
                     @endif
                 </div>
             </div>
 
-            <div class="mt-6 flex justify-end gap-3 border-t border-gray-200 pt-5">
-                <button
-                    type="button"
-                    wire:click="closeCreateForm"
-                    class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-                >
-                    Cancelar
-                </button>
-
-                <button
-                    type="button"
-                    wire:click="saveOrder"
-                    wire:loading.attr="disabled"
-                    class="nyva-btn"
-                >
-                    <span wire:loading.remove wire:target="saveOrder">
-                        Crear pedido
-                    </span>
-
-                    <span wire:loading wire:target="saveOrder">
-                        Guardando...
-                    </span>
-                </button>
+            <div class="mt-6 flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end">
+                <x-ui.button variant="secondary" wire:click="closeCreateForm">Cancelar</x-ui.button>
+                <x-ui.button wire:click="saveOrder" target="saveOrder">Crear pedido</x-ui.button>
             </div>
-        </div>
+        </section>
     @endif
 
-    <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-        <div class="grid gap-3 md:grid-cols-3">
-            <div>
-                <label class="mb-1 block text-xs font-medium text-gray-500">
-                    Buscar cliente
-                </label>
+    <section class="nyva-card grid grid-cols-1 gap-3 p-4 md:grid-cols-3">
+        <x-ui.input label="Buscar cliente" name="search" type="search" wire:model.live.debounce.400ms="search" placeholder="Nombre o teléfono" />
 
-                <input
-                    type="text"
-                    wire:model.live.debounce.400ms="search"
-                    placeholder="Nombre o teléfono"
-                    class="nyva-input"
-                >
-            </div>
+        <x-ui.select label="Establecimiento" name="establishmentFilter" wire:model.live="establishmentFilter">
+            <option value="">Todos</option>
+            @foreach ($establishments as $establishment)
+                <option value="{{ $establishment->id }}">{{ $establishment->name }}</option>
+            @endforeach
+        </x-ui.select>
 
-            <div>
-                <label class="mb-1 block text-xs font-medium text-gray-500">
-                    Establecimiento
-                </label>
+        <x-ui.select label="Estado" name="statusFilter" wire:model.live="statusFilter">
+            <option value="">Todos</option>
+            @foreach (Order::STATUS_LABELS as $value => $label)
+                <option value="{{ $value }}">{{ $label }}</option>
+            @endforeach
+        </x-ui.select>
+    </section>
 
-                <select
-                    wire:model.live="establishmentFilter"
-                    class="nyva-input"
-                >
-                    <option value="">Todos</option>
+    <section class="nyva-card overflow-hidden" wire:loading.class="opacity-60" wire:target="search, establishmentFilter, statusFilter">
+        @if ($orders->isEmpty())
+            <x-ui.empty-state icon="clipboard-document-list" title="No hay pedidos para mostrar" description="Cambia los filtros o registra un pedido nuevo." />
+        @else
+            <div class="divide-y divide-slate-100">
+                @foreach ($orders as $order)
+                    @php
+                        $availableTransitions = Order::TRANSITIONS[$order->status] ?? [];
+                        $open = $selectedOrderId === $order->id;
+                    @endphp
 
-                    @foreach ($establishments as $establishment)
-                        <option value="{{ $establishment->id }}">
-                            {{ $establishment->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+                    <article wire:key="order-{{ $order->id }}" @class(['bg-blue-50/40' => $open])>
+                        <div class="grid grid-cols-1 gap-3 p-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_7rem_minmax(0,1.2fr)_auto] md:items-center md:gap-4 md:px-5">
+                            <div class="min-w-0">
+                                <p class="truncate font-semibold text-slate-800">#{{ $order->id }} · {{ $order->customer_name }}</p>
+                                <p class="text-xs text-slate-500">{{ $order->customer_phone }} · {{ $order->ordered_at?->format('d/m/Y H:i') ?? '—' }}</p>
+                            </div>
 
-            <div>
-                <label class="mb-1 block text-xs font-medium text-gray-500">
-                    Estado
-                </label>
+                            <p class="truncate text-sm text-slate-600">{{ $order->establishment?->name ?? '—' }}</p>
 
-                <select
-                    wire:model.live="statusFilter"
-                    class="nyva-input"
-                >
-                    <option value="">Todos</option>
-                    <option value="pending">Pendiente</option>
-                    <option value="confirmed">Confirmado</option>
-                    <option value="preparing">Preparando</option>
-                    <option value="shipped">Enviado</option>
-                    <option value="delivered">Entregado</option>
-                    <option value="cancelled">Cancelado</option>
-                </select>
-            </div>
-        </div>
-    </div>
+                            <p class="font-semibold text-slate-800">$ {{ number_format((float) $order->total, 0, ',', '.') }}</p>
 
-    <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                            Cliente
-                        </th>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <x-order-status :status="$order->status" :label="$order->statusLabel()" />
 
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                            Establecimiento
-                        </th>
+                                @if (count($availableTransitions) > 0)
+                                    <select
+                                        wire:change="updateStatus({{ $order->id }}, $event.target.value)"
+                                        wire:loading.attr="disabled"
+                                        aria-label="Cambiar estado del pedido {{ $order->id }}"
+                                        class="nyva-input w-auto! py-1.5! text-xs"
+                                    >
+                                        <option value="">Cambiar estado...</option>
+                                        @foreach ($availableTransitions as $value)
+                                            <option value="{{ $value }}">{{ Order::STATUS_LABELS[$value] }}</option>
+                                        @endforeach
+                                    </select>
+                                @endif
+                            </div>
 
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                            Total
-                        </th>
+                            <button type="button" wire:click="toggleDetails({{ $order->id }})" class="nyva-link justify-self-start text-sm md:justify-self-end">
+                                {{ $open ? 'Ocultar' : 'Ver detalle' }}
+                            </button>
+                        </div>
 
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                            Estado
-                        </th>
-
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                            Fecha
-                        </th>
-
-                        <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
-                            Acción
-                        </th>
-                    </tr>
-                </thead>
-
-                <tbody class="divide-y divide-gray-200">
-                    @forelse ($orders as $order)
-                        <tr>
-                            <td class="px-4 py-4">
-                                <div class="font-medium text-gray-900">
-                                    {{ $order->customer_name }}
+                        @if ($open)
+                            <div class="grid grid-cols-1 gap-4 border-t border-blue-100 px-4 py-4 md:grid-cols-2 md:px-5">
+                                <div>
+                                    <h3 class="mb-2 text-sm font-semibold text-slate-800">Datos de entrega</h3>
+                                    <p class="text-sm text-slate-600">{{ $order->customer_name }} · {{ $order->customer_phone }}</p>
+                                    <p class="text-sm text-slate-600">{{ $order->delivery_address ?: 'Sin dirección de entrega' }}</p>
                                 </div>
 
-                                <div class="text-sm text-gray-500">
-                                    {{ $order->customer_phone }}
-                                </div>
-                            </td>
+                                <div>
+                                    <h3 class="mb-2 text-sm font-semibold text-slate-800">Productos</h3>
 
-                            <td class="px-4 py-4 text-sm text-gray-700">
-                                {{ $order->establishment?->name ?? '—' }}
-                            </td>
-
-                            <td class="px-4 py-4 text-sm font-semibold text-gray-900">
-                                ${{ number_format((float) $order->total, 0, ',', '.') }}
-                            </td>
-
-                            <td class="px-4 py-4">
-                                <div class="space-y-2">
-                                    <x-order-status :status="$order->status" :label="$order->statusLabel()" />
-
-                                    @php
-                                        $availableTransitions = Order::TRANSITIONS[$order->status] ?? [];
-                                    @endphp
-
-                                    @if (count($availableTransitions) > 0)
-                                        <select
-                                            wire:change="updateStatus({{ $order->id }}, $event.target.value)"
-                                            class="block w-full rounded-lg border border-gray-400 bg-gray-50 px-2 py-2 text-xs text-gray-900 shadow-sm focus:border-blue-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
-                                        >
-                                            <option value="">Cambiar estado...</option>
-                                            @foreach ($availableTransitions as $value)
-                                                <option value="{{ $value }}">{{ Order::STATUS_LABELS[$value] }}</option>
-                                            @endforeach
-                                        </select>
-                                    @endif
-                                </div>
-                            </td>
-
-                            <td class="px-4 py-4 text-sm text-gray-500">
-                                {{ $order->ordered_at?->format('d/m/Y H:i') ?? '—' }}
-                            </td>
-
-                            <td class="px-4 py-4 text-right">
-                                <button
-                                    type="button"
-                                    wire:click="toggleDetails({{ $order->id }})"
-                                    class="text-sm font-semibold text-blue-700 hover:text-blue-800"
-                                >
-                                    {{ $selectedOrderId === $order->id ? 'Ocultar' : 'Ver detalle' }}
-                                </button>
-                            </td>
-                        </tr>
-
-                        @if ($selectedOrderId === $order->id)
-                            <tr>
-                                <td colspan="6" class="bg-gray-50 px-4 py-5">
-                                    <div class="grid gap-4 md:grid-cols-2">
-                                        <div>
-                                            <h3 class="mb-2 text-sm font-semibold text-gray-900">
-                                                Datos de entrega
-                                            </h3>
-
-                                            <p class="text-sm text-gray-600">
-                                                {{ $order->delivery_address ?: 'Sin dirección de entrega' }}
-                                            </p>
-                                        </div>
-
-                                        <div>
-                                            <h3 class="mb-2 text-sm font-semibold text-gray-900">
-                                                Productos
-                                            </h3>
-
-                                            <div class="space-y-2">
-                                                @foreach ($order->orderItems as $item)
-                                                    <div class="flex justify-between gap-4 text-sm">
-                                                        <span class="text-gray-700">
-                                                            {{ $item->product?->name ?? 'Producto eliminado' }}
-                                                            × {{ $item->quantity }}
-                                                        </span>
-
-                                                        <span class="font-medium text-gray-900">
-                                                            ${{ number_format((float) $item->subtotal, 0, ',', '.') }}
-                                                        </span>
-                                                    </div>
-                                                @endforeach
+                                    <div class="flex flex-col gap-1.5">
+                                        @foreach ($order->orderItems as $item)
+                                            <div class="flex justify-between gap-4 text-sm">
+                                                <span class="text-slate-700">{{ $item->product?->name ?? 'Producto eliminado' }} × {{ $item->quantity }}</span>
+                                                <span class="font-medium text-slate-800">$ {{ number_format((float) $item->subtotal, 0, ',', '.') }}</span>
                                             </div>
-                                        </div>
+                                        @endforeach
                                     </div>
-                                </td>
-                            </tr>
+                                </div>
+                            </div>
                         @endif
-                    @empty
-                        <tr>
-                            <td colspan="6" class="px-4 py-10 text-center text-sm text-gray-500">
-                                No hay pedidos para mostrar.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-
-        @if ($orders->hasPages())
-            <div class="border-t border-gray-200 px-4 py-3">
-                {{ $orders->links() }}
+                    </article>
+                @endforeach
             </div>
         @endif
-    </div>
+
+        @if ($orders->hasPages())
+            <div class="border-t border-slate-100 px-4 py-3">{{ $orders->links() }}</div>
+        @endif
+    </section>
 </div>
-
-
-
-
