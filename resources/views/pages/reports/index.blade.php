@@ -135,235 +135,120 @@ new #[Layout('layouts.app')] #[Title('Reportes')] class extends Component {
 };
 ?>
 
-<div class="space-y-6 p-4 md:p-6">
-    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h1 class="text-2xl font-bold text-zinc-900">Estadísticas y reportes</h1>
-            <p class="mt-1 text-sm text-zinc-600">
-                Consulta las ventas y el rendimiento de tus establecimientos.
-            </p>
-        </div>
-    </div>
+<div class="flex flex-col gap-6 p-4 md:p-6 lg:p-8">
+    <x-page-header title="Estadísticas y reportes" subtitle="Consulta las ventas y el rendimiento de tus establecimientos." />
 
-    <section class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-        <div class="mb-4">
-            <h2 class="font-semibold text-zinc-900">Filtros del reporte</h2>
-            <p class="text-sm text-zinc-500">Selecciona el periodo y el establecimiento.</p>
-        </div>
+    <section class="nyva-card p-4 md:p-5">
+        <x-ui.section-header title="Filtros del reporte" subtitle="Selecciona el periodo y el establecimiento." class="mb-4" />
 
-        <div class="grid gap-4 md:grid-cols-4">
-            <div>
-                <label for="startDate" class="mb-1 block text-sm font-medium text-zinc-700">
-                    Fecha inicial
-                </label>
-                <input
-                    id="startDate"
-                    type="date"
-                    wire:model.live="startDate"
-                    class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900"
-                >
-            </div>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <x-ui.input label="Fecha inicial" name="startDate" type="date" wire:model.live="startDate" />
+            <x-ui.input label="Fecha final" name="endDate" type="date" wire:model.live="endDate" />
 
-            <div>
-                <label for="endDate" class="mb-1 block text-sm font-medium text-zinc-700">
-                    Fecha final
-                </label>
-                <input
-                    id="endDate"
-                    type="date"
-                    wire:model.live="endDate"
-                    class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900"
-                >
-            </div>
-
-            <div>
-                <label for="establishmentFilter" class="mb-1 block text-sm font-medium text-zinc-700">
-                    Establecimiento
-                </label>
-                <select
-                    id="establishmentFilter"
-                    wire:model.live="establishmentFilter"
-                    class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900"
-                >
-                    <option value="">Todos los establecimientos</option>
-                    @foreach ($this->establishmentsList as $establishment)
-                        <option value="{{ $establishment->id }}">
-                            {{ $establishment->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+            <x-ui.select label="Establecimiento" name="establishmentFilter" wire:model.live="establishmentFilter">
+                <option value="">Todos los establecimientos</option>
+                @foreach ($this->establishmentsList as $establishment)
+                    <option value="{{ $establishment->id }}">{{ $establishment->name }}</option>
+                @endforeach
+            </x-ui.select>
 
             <div class="flex items-end">
-                <button
-                    type="button"
-                    wire:click="clearFilters"
-                    class="w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100"
-                >
-                    Limpiar filtros
-                </button>
+                <x-ui.button variant="secondary" wire:click="clearFilters" icon="arrow-path" class="w-full">Limpiar filtros</x-ui.button>
             </div>
         </div>
 
         @if ($startDate && $endDate && $startDate > $endDate)
-            <p class="mt-3 text-sm text-red-600">
-                La fecha inicial no puede ser posterior a la fecha final.
-            </p>
+            <p class="nyva-error mt-3">La fecha inicial no puede ser posterior a la fecha final.</p>
         @endif
     </section>
 
-    @if (!$startDate || !$endDate || $startDate > $endDate)
-        <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-            Selecciona un rango de fechas válido para consultar las estadísticas.
-        </div>
+    @if (! $startDate || ! $endDate || $startDate > $endDate)
+        <x-ui.alert tone="warning">Selecciona un rango de fechas válido para consultar las estadísticas.</x-ui.alert>
     @else
-        <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-                <p class="text-sm font-medium text-zinc-500">Ventas totales</p>
-                <p class="mt-2 text-2xl font-bold text-zinc-900">
-                    $ {{ number_format($this->summary['sales'], 0, ',', '.') }}
-                </p>
-                <p class="mt-1 text-xs text-zinc-500">Pedidos no cancelados</p>
-            </div>
+        <div class="flex flex-col gap-6" wire:loading.class="opacity-60" wire:target="startDate, endDate, establishmentFilter, clearFilters">
+            <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <x-stat-card label="Ventas totales" :value="'$ '.number_format($this->summary['sales'], 0, ',', '.')" hint="Pedidos no cancelados" tone="green" icon="banknotes" />
+                <x-stat-card label="Pedidos registrados" :value="number_format($this->summary['orders'], 0, ',', '.')" hint="En el periodo seleccionado" icon="clipboard-document-list" />
+                <x-stat-card label="Ticket promedio" :value="'$ '.number_format($this->summary['average'], 0, ',', '.')" hint="Venta promedio por pedido" tone="violet" icon="calculator" />
+                <x-stat-card label="Unidades vendidas" :value="number_format($this->summary['units'], 0, ',', '.')" hint="Productos en pedidos no cancelados" tone="amber" icon="cube" />
+            </section>
 
-            <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-                <p class="text-sm font-medium text-zinc-500">Pedidos registrados</p>
-                <p class="mt-2 text-2xl font-bold text-zinc-900">
-                    {{ number_format($this->summary['orders'], 0, ',', '.') }}
-                </p>
-                <p class="mt-1 text-xs text-zinc-500">En el periodo seleccionado</p>
-            </div>
+            <section class="nyva-card overflow-hidden">
+                <x-ui.section-header title="Ventas por día" subtitle="Pedidos no cancelados del periodo" class="p-5" />
 
-            <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-                <p class="text-sm font-medium text-zinc-500">Ticket promedio</p>
-                <p class="mt-2 text-2xl font-bold text-zinc-900">
-                    $ {{ number_format($this->summary['average'], 0, ',', '.') }}
-                </p>
-                <p class="mt-1 text-xs text-zinc-500">Venta promedio por pedido</p>
-            </div>
+                @if ($this->dailySales->isEmpty())
+                    <x-ui.empty-state icon="chart-bar" title="No hay ventas en este periodo" description="Prueba con otro rango de fechas." />
+                @else
+                    <div class="px-5 pb-5">
+                        <x-bar-chart :points="$this->dailySales->map(fn ($day) => ['label' => \Carbon\Carbon::parse($day->day)->format('d/m'), 'value' => (float) $day->sales])->values()->all()" />
+                    </div>
 
-            <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-                <p class="text-sm font-medium text-zinc-500">Unidades vendidas</p>
-                <p class="mt-2 text-2xl font-bold text-zinc-900">
-                    {{ number_format($this->summary['units'], 0, ',', '.') }}
-                </p>
-                <p class="mt-1 text-xs text-zinc-500">Productos en pedidos no cancelados</p>
-            </div>
-        </section>
+                    <div class="overflow-x-auto border-t border-slate-100">
+                        <table class="nyva-table">
+                            <thead><tr><th>Fecha</th><th class="text-center">Pedidos</th><th class="text-right">Ventas</th></tr></thead>
+                            <tbody>
+                                @foreach ($this->dailySales as $day)
+                                    <tr>
+                                        <td>{{ \Carbon\Carbon::parse($day->day)->format('d/m/Y') }}</td>
+                                        <td class="text-center">{{ $day->orders_count }}</td>
+                                        <td class="text-right font-semibold text-slate-800">$ {{ number_format($day->sales, 0, ',', '.') }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </section>
 
-        <section class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-            <h2 class="mb-4 text-lg font-semibold text-zinc-900">Ventas por día</h2>
+            <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                <section class="nyva-card overflow-hidden">
+                    <x-ui.section-header title="Productos más vendidos" subtitle="Por unidades" class="p-5" />
 
-            @if ($this->dailySales->isEmpty())
-                <p class="py-6 text-center text-sm text-zinc-500">
-                    No hay ventas registradas en este periodo.
-                </p>
-            @else
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead class="border-b border-zinc-200 bg-zinc-50 text-zinc-600">
-                            <tr>
-                                <th class="px-4 py-3 font-semibold">Fecha</th>
-                                <th class="px-4 py-3 text-center font-semibold">Pedidos</th>
-                                <th class="px-4 py-3 text-right font-semibold">Ventas</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-zinc-100">
-                            @foreach ($this->dailySales as $day)
-                                <tr>
-                                    <td class="px-4 py-3 text-zinc-700">
-                                        {{ \Carbon\Carbon::parse($day->day)->format('d/m/Y') }}
-                                    </td>
-                                    <td class="px-4 py-3 text-center text-zinc-700">
-                                        {{ $day->orders_count }}
-                                    </td>
-                                    <td class="px-4 py-3 text-right font-medium text-zinc-900">
-                                        $ {{ number_format($day->sales, 0, ',', '.') }}
-                                    </td>
-                                </tr>
+                    @if ($this->topProducts->isEmpty())
+                        <x-ui.empty-state icon="shopping-bag" title="Sin productos vendidos" description="No hay ventas en este periodo." />
+                    @else
+                        @php
+                            $maxUnits = max(1, $this->topProducts->max('units'));
+                        @endphp
+                        <ul class="divide-y divide-slate-100 border-t border-slate-100">
+                            @foreach ($this->topProducts as $product)
+                                <li class="flex flex-col gap-2 px-5 py-3">
+                                    <div class="flex items-center justify-between gap-3 text-sm">
+                                        <span class="min-w-0 truncate font-medium text-slate-800">{{ $product->name }}</span>
+                                        <span class="whitespace-nowrap text-slate-500">{{ $product->units }} u · <span class="font-semibold text-slate-800">$ {{ number_format($product->sales, 0, ',', '.') }}</span></span>
+                                    </div>
+                                    <div class="h-1.5 overflow-hidden rounded-full bg-slate-100">
+                                        <div class="h-full rounded-full bg-blue-600" style="width: {{ round($product->units / $maxUnits * 100) }}%"></div>
+                                    </div>
+                                </li>
                             @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @endif
-        </section>
+                        </ul>
+                    @endif
+                </section>
 
-        <div class="grid gap-6 xl:grid-cols-2">
-            <section class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-                <h2 class="mb-4 text-lg font-semibold text-zinc-900">Productos más vendidos</h2>
+                <section class="nyva-card overflow-hidden">
+                    <x-ui.section-header title="Ventas por establecimiento" subtitle="Establecimientos con mayor actividad" class="p-5" />
 
-                @if ($this->topProducts->isEmpty())
-                    <p class="py-6 text-center text-sm text-zinc-500">
-                        No hay productos vendidos en este periodo.
-                    </p>
-                @else
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead class="border-b border-zinc-200 bg-zinc-50 text-zinc-600">
-                                <tr>
-                                    <th class="px-3 py-3 font-semibold">Producto</th>
-                                    <th class="px-3 py-3 text-center font-semibold">Unidades</th>
-                                    <th class="px-3 py-3 text-right font-semibold">Ventas</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-zinc-100">
-                                @foreach ($this->topProducts as $product)
-                                    <tr>
-                                        <td class="px-3 py-3 font-medium text-zinc-800">
-                                            {{ $product->name }}
-                                        </td>
-                                        <td class="px-3 py-3 text-center text-zinc-700">
-                                            {{ $product->units }}
-                                        </td>
-                                        <td class="px-3 py-3 text-right text-zinc-800">
-                                            $ {{ number_format($product->sales, 0, ',', '.') }}
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @endif
-            </section>
-
-            <section class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-                <h2 class="mb-4 text-lg font-semibold text-zinc-900">Ventas por establecimiento</h2>
-
-                @if ($this->topEstablishments->isEmpty())
-                    <p class="py-6 text-center text-sm text-zinc-500">
-                        No hay ventas registradas en este periodo.
-                    </p>
-                @else
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead class="border-b border-zinc-200 bg-zinc-50 text-zinc-600">
-                                <tr>
-                                    <th class="px-3 py-3 font-semibold">Establecimiento</th>
-                                    <th class="px-3 py-3 text-center font-semibold">Pedidos</th>
-                                    <th class="px-3 py-3 text-right font-semibold">Ventas</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-zinc-100">
-                                @foreach ($this->topEstablishments as $establishment)
-                                    <tr>
-                                        <td class="px-3 py-3 font-medium text-zinc-800">
-                                            {{ $establishment->name }}
-                                        </td>
-                                        <td class="px-3 py-3 text-center text-zinc-700">
-                                            {{ $establishment->orders_count }}
-                                        </td>
-                                        <td class="px-3 py-3 text-right text-zinc-800">
-                                            $ {{ number_format($establishment->sales, 0, ',', '.') }}
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @endif
-            </section>
+                    @if ($this->topEstablishments->isEmpty())
+                        <x-ui.empty-state icon="building-storefront" title="Sin ventas registradas" description="No hay ventas en este periodo." />
+                    @else
+                        <div class="overflow-x-auto border-t border-slate-100">
+                            <table class="nyva-table">
+                                <thead><tr><th>Establecimiento</th><th class="text-center">Pedidos</th><th class="text-right">Ventas</th></tr></thead>
+                                <tbody>
+                                    @foreach ($this->topEstablishments as $establishment)
+                                        <tr>
+                                            <td class="font-medium text-slate-800">{{ $establishment->name }}</td>
+                                            <td class="text-center">{{ $establishment->orders_count }}</td>
+                                            <td class="text-right font-semibold text-slate-800">$ {{ number_format($establishment->sales, 0, ',', '.') }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </section>
+            </div>
         </div>
     @endif
 </div>
-
-
