@@ -18,8 +18,8 @@ new #[Layout('layouts.app')] #[Title('Estadísticas')] class extends Component {
 
         $colors = [
             'pending' => 'bg-amber-500',
-            'confirmed' => 'bg-blue-500',
-            'preparing' => 'bg-indigo-500',
+            'confirmed' => 'bg-sky-500',
+            'preparing' => 'bg-blue-600',
             'shipped' => 'bg-violet-500',
             'delivered' => 'bg-green-500',
             'cancelled' => 'bg-red-500',
@@ -44,7 +44,7 @@ new #[Layout('layouts.app')] #[Title('Estadísticas')] class extends Component {
             'planItems' => Plan::query()
                 ->withCount(['subscriptions' => fn ($query) => $query->where('status', 'active')])
                 ->get()
-                ->map(fn (Plan $plan) => ['label' => $plan->name, 'value' => $plan->subscriptions_count, 'color' => 'bg-indigo-500'])
+                ->map(fn (Plan $plan) => ['label' => $plan->name, 'value' => $plan->subscriptions_count, 'color' => 'bg-blue-600'])
                 ->all(),
         ];
     }

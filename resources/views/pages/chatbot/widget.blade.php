@@ -114,7 +114,7 @@ new class extends Component {
             type="button"
             x-show="! open"
             x-on:click="open = true; scroll()"
-            class="fixed bottom-5 end-5 z-40 flex items-center gap-2 rounded-full bg-indigo-600 px-5 py-3.5 font-semibold text-white shadow-lg transition hover:bg-indigo-700"
+            class="fixed bottom-5 end-5 z-40 flex items-center gap-2 rounded-full bg-blue-700 px-5 py-3.5 font-semibold text-white shadow-lg transition hover:bg-blue-800"
         >
             <flux:icon name="chat-bubble-left-right" class="size-5" />
             Asistente
@@ -126,7 +126,7 @@ new class extends Component {
             aria-label="Asistente virtual"
             class="fixed inset-0 z-50 flex flex-col bg-white shadow-2xl sm:inset-auto sm:bottom-5 sm:end-5 sm:h-[36rem] sm:w-[24rem] sm:rounded-2xl sm:border sm:border-zinc-200"
         >
-            <header class="flex items-center justify-between gap-3 bg-indigo-700 px-4 py-3 text-white sm:rounded-t-2xl">
+            <header class="flex items-center justify-between gap-3 bg-blue-800 px-4 py-3 text-white sm:rounded-t-2xl">
                 <div class="flex min-w-0 items-center gap-3">
                     <span class="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/20 font-semibold">
                         @if ($establishment->logoUrl())
@@ -137,7 +137,7 @@ new class extends Component {
                     </span>
                     <span class="min-w-0">
                         <span class="block truncate font-semibold">{{ $establishment->name }}</span>
-                        <span class="block text-xs text-indigo-100">Asistente virtual</span>
+                        <span class="block text-xs text-blue-100">Asistente virtual</span>
                     </span>
                 </div>
 
@@ -152,7 +152,7 @@ new class extends Component {
                 @if ($messages->isEmpty())
                     <div class="flex flex-wrap gap-2">
                         @foreach (['Ver menú', 'Horarios', 'Quiero hacer un pedido'] as $suggestion)
-                            <button type="button" wire:click="quick(@js($suggestion))" class="rounded-full border border-indigo-200 bg-white px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-50">{{ $suggestion }}</button>
+                            <button type="button" wire:click="quick(@js($suggestion))" class="rounded-full border border-blue-200 bg-white px-3 py-1.5 text-xs font-semibold text-blue-800 hover:bg-blue-50">{{ $suggestion }}</button>
                         @endforeach
                     </div>
                 @endif
@@ -165,7 +165,7 @@ new class extends Component {
                     <div wire:key="message-{{ $entry->id }}" @class(['flex flex-col gap-2', 'items-end' => $entry->role === 'user', 'items-start' => $entry->role !== 'user'])>
                         <div @class([
                             'max-w-[85%] whitespace-pre-line px-3.5 py-2.5',
-                            'rounded-2xl rounded-br-sm bg-indigo-600 text-white' => $entry->role === 'user',
+                            'rounded-2xl rounded-br-sm bg-blue-700 text-white' => $entry->role === 'user',
                             'rounded-2xl rounded-bl-sm bg-white text-zinc-800 shadow-sm' => $entry->role !== 'user',
                         ])>{{ $entry->content }}</div>
 
@@ -173,7 +173,7 @@ new class extends Component {
                             <div class="w-full rounded-xl border border-zinc-200 bg-white p-3">
                                 <div class="flex items-start justify-between gap-3">
                                     <span class="font-semibold text-zinc-900">{{ $card['name'] }}</span>
-                                    <span class="whitespace-nowrap font-semibold text-indigo-700">{{ $card['price'] }}</span>
+                                    <span class="whitespace-nowrap font-semibold text-blue-800">{{ $card['price'] }}</span>
                                 </div>
 
                                 @if ($card['description'])
@@ -181,7 +181,7 @@ new class extends Component {
                                 @endif
 
                                 @if ($card['available'])
-                                    <button type="button" wire:click="quick(@js('Agrega '.$card['name']))" class="mt-2 text-xs font-semibold text-indigo-700 hover:underline">Agregar al pedido</button>
+                                    <button type="button" wire:click="quick(@js('Agrega '.$card['name']))" class="mt-2 text-xs font-semibold text-blue-800 hover:underline">Agregar al pedido</button>
                                 @else
                                     <span class="mt-2 inline-block rounded-full bg-zinc-200 px-2 py-0.5 text-xs font-semibold text-zinc-700">No disponible</span>
                                 @endif
@@ -189,8 +189,8 @@ new class extends Component {
                         @endforeach
 
                         @if (! empty($payload['summary']['lines']))
-                            <div class="w-full rounded-xl border border-indigo-200 bg-white p-3">
-                                <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-indigo-700">Tu pedido</p>
+                            <div class="w-full rounded-xl border border-blue-200 bg-white p-3">
+                                <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-blue-800">Tu pedido</p>
 
                                 @foreach ($payload['summary']['lines'] as $line)
                                     <div class="flex justify-between gap-3 py-0.5 text-zinc-700">
@@ -207,13 +207,13 @@ new class extends Component {
                         @endif
 
                         @if (! empty($payload['link']))
-                            <a href="{{ $payload['link'] }}" class="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700">Seguir mi pedido</a>
+                            <a href="{{ $payload['link'] }}" class="rounded-lg bg-blue-700 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-800">Seguir mi pedido</a>
                         @endif
 
                         @if ($loop->last && ! empty($payload['suggestions']))
                             <div class="flex flex-wrap gap-2">
                                 @foreach ($payload['suggestions'] as $suggestion)
-                                    <button type="button" wire:click="quick(@js($suggestion))" class="rounded-full border border-indigo-200 bg-white px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-50">{{ $suggestion }}</button>
+                                    <button type="button" wire:click="quick(@js($suggestion))" class="rounded-full border border-blue-200 bg-white px-3 py-1.5 text-xs font-semibold text-blue-800 hover:bg-blue-50">{{ $suggestion }}</button>
                                 @endforeach
                             </div>
                         @endif

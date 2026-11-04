@@ -54,7 +54,7 @@ new class extends Component {
                 <span class="text-sm font-semibold">Notificaciones</span>
 
                 @if ($unread > 0)
-                    <button type="button" wire:click="markAllAsRead" class="text-xs font-medium text-indigo-700 hover:underline dark:text-indigo-300">Marcar todas</button>
+                    <button type="button" wire:click="markAllAsRead" class="text-xs font-medium text-blue-800 hover:underline dark:text-blue-300">Marcar todas</button>
                 @endif
             </div>
 
@@ -66,7 +66,7 @@ new class extends Component {
                         wire:click="markAsRead('{{ $item->id }}')"
                         @class([
                             'block w-full border-b border-zinc-100 px-4 py-3 text-start text-sm last:border-0 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800',
-                            'bg-indigo-50/60 dark:bg-indigo-950/40' => $item->read_at === null,
+                            'bg-blue-50/60 dark:bg-blue-950/40' => $item->read_at === null,
                         ])
                     >
                         <span class="block font-medium">{{ $item->data['title'] ?? '' }}</span>

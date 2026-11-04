@@ -132,7 +132,7 @@ new #[Layout('layouts.public')] #[Title('Confirmar pedido')] class extends Compo
                 form="checkout-form"
                 wire:loading.attr="disabled"
                 wire:target="placeOrder"
-                class="mt-4 w-full rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+                class="mt-4 w-full rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50"
             >
                 <span wire:loading.remove wire:target="placeOrder">Confirmar pedido</span>
                 <span wire:loading wire:target="placeOrder">Procesando...</span>

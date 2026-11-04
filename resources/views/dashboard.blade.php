@@ -7,8 +7,8 @@
         @php
             $statusItems = [
                 ['label' => 'Pendientes', 'value' => (int) $orderStatusCounts->get('pending', 0), 'color' => 'bg-amber-500'],
-                ['label' => 'Confirmados', 'value' => (int) $orderStatusCounts->get('confirmed', 0), 'color' => 'bg-blue-500'],
-                ['label' => 'En preparación', 'value' => (int) $orderStatusCounts->get('preparing', 0), 'color' => 'bg-indigo-500'],
+                ['label' => 'Confirmados', 'value' => (int) $orderStatusCounts->get('confirmed', 0), 'color' => 'bg-sky-500'],
+                ['label' => 'En preparación', 'value' => (int) $orderStatusCounts->get('preparing', 0), 'color' => 'bg-blue-600'],
                 ['label' => 'Enviados', 'value' => (int) $orderStatusCounts->get('shipped', 0), 'color' => 'bg-violet-500'],
                 ['label' => 'Entregados', 'value' => (int) $orderStatusCounts->get('delivered', 0), 'color' => 'bg-green-500'],
                 ['label' => 'Cancelados', 'value' => (int) $orderStatusCounts->get('cancelled', 0), 'color' => 'bg-red-500'],

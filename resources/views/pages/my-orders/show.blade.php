@@ -31,7 +31,7 @@ new #[Layout('layouts.public')] #[Title('Seguimiento del pedido')] class extends
 
 <div wire:poll.20s class="flex flex-col gap-6">
     <div>
-        <a href="{{ route('my-orders.index') }}" wire:navigate class="text-sm font-medium text-indigo-700 hover:underline">Volver a mis pedidos</a>
+        <a href="{{ route('my-orders.index') }}" wire:navigate class="text-sm font-medium text-blue-800 hover:underline">Volver a mis pedidos</a>
 
         <div class="mt-2 flex flex-wrap items-center gap-3">
             <h1 class="text-2xl font-bold text-zinc-900">Pedido #{{ $order->id }}</h1>

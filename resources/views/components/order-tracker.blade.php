@@ -34,7 +34,7 @@
                 >
                     <span @class([
                         'flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold',
-                        'bg-indigo-600 text-white' => $reached,
+                        'bg-blue-700 text-white' => $reached,
                         'bg-zinc-100 text-zinc-500' => ! $reached,
                     ])>
                         {{ $loop->iteration }}

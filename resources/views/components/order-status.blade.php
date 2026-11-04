@@ -2,15 +2,16 @@
 
 @php
     $colors = [
-        'pending' => 'bg-amber-100 text-amber-800',
-        'confirmed' => 'bg-blue-100 text-blue-800',
-        'preparing' => 'bg-indigo-100 text-indigo-800',
-        'shipped' => 'bg-violet-100 text-violet-800',
-        'delivered' => 'bg-green-100 text-green-800',
-        'cancelled' => 'bg-red-100 text-red-800',
+        'pending' => 'bg-amber-50 text-amber-800 ring-amber-200',
+        'confirmed' => 'bg-sky-50 text-sky-700 ring-sky-200',
+        'preparing' => 'bg-blue-50 text-blue-700 ring-blue-200',
+        'shipped' => 'bg-violet-50 text-violet-700 ring-violet-200',
+        'delivered' => 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+        'cancelled' => 'bg-red-50 text-red-700 ring-red-200',
     ];
 @endphp
 
-<span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold {{ $colors[$status] ?? 'bg-zinc-100 text-zinc-700' }}">
+<span class="nyva-badge ring-1 ring-inset {{ $colors[$status] ?? 'bg-slate-100 text-slate-700 ring-slate-200' }}">
+    <span class="size-1.5 rounded-full bg-current" aria-hidden="true"></span>
     {{ $label }}
 </span>

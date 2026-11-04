@@ -674,7 +674,7 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
                                     @if (count($availableTransitions) > 0)
                                         <select
                                             wire:change="updateStatus({{ $order->id }}, $event.target.value)"
-                                            class="block w-full rounded-lg border border-gray-400 bg-gray-50 px-2 py-2 text-xs text-gray-900 shadow-sm focus:border-indigo-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                                            class="block w-full rounded-lg border border-gray-400 bg-gray-50 px-2 py-2 text-xs text-gray-900 shadow-sm focus:border-blue-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
                                         >
                                             <option value="">Cambiar estado...</option>
                                             @foreach ($availableTransitions as $value)
@@ -693,7 +693,7 @@ new #[Layout('layouts.app')] #[Title('Pedidos')] class extends Component {
                                 <button
                                     type="button"
                                     wire:click="toggleDetails({{ $order->id }})"
-                                    class="text-sm font-semibold text-indigo-600 hover:text-indigo-700"
+                                    class="text-sm font-semibold text-blue-700 hover:text-blue-800"
                                 >
                                     {{ $selectedOrderId === $order->id ? 'Ocultar' : 'Ver detalle' }}
                                 </button>

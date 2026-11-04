@@ -1,7 +1,7 @@
 @if (session('notice'))
-    <div class="nyva-alert-success" role="status">{{ session('notice') }}</div>
+    <x-ui.alert>{{ session('notice') }}</x-ui.alert>
 @endif
 
 @if (session('failure'))
-    <div class="nyva-alert-error" role="alert">{{ session('failure') }}</div>
+    <x-ui.alert tone="error">{{ session('failure') }}</x-ui.alert>
 @endif

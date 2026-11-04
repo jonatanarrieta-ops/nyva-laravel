@@ -57,7 +57,7 @@ new #[Layout('layouts.public')] #[Title('Carrito')] class extends Component {
         @if ($establishment)
             <p class="mt-1 text-sm text-zinc-500">
                 Pedido para
-                <a href="{{ route('catalog.show', $establishment) }}" wire:navigate class="font-medium text-indigo-700 hover:underline">{{ $establishment->name }}</a>
+                <a href="{{ route('catalog.show', $establishment) }}" wire:navigate class="font-medium text-blue-800 hover:underline">{{ $establishment->name }}</a>
             </p>
         @endif
     </div>
@@ -123,7 +123,7 @@ new #[Layout('layouts.public')] #[Title('Carrito')] class extends Component {
                 @if ($hasUnavailable)
                     <span class="rounded-lg bg-zinc-200 px-5 py-2.5 text-center text-sm font-semibold text-zinc-500">Continuar al pago</span>
                 @else
-                    <a href="{{ route('checkout') }}" wire:navigate class="rounded-lg bg-indigo-600 px-5 py-2.5 text-center text-sm font-semibold text-white hover:bg-indigo-700">
+                    <a href="{{ route('checkout') }}" wire:navigate class="rounded-lg bg-blue-700 px-5 py-2.5 text-center text-sm font-semibold text-white hover:bg-blue-800">
                         Continuar al pago
                     </a>
                 @endif

@@ -14,14 +14,14 @@ new #[Layout('layouts.public')] #[Title('Asistente virtual para negocios')] clas
 ?>
 
 <div class="flex flex-col gap-8">
-    <section class="rounded-2xl bg-gradient-to-r from-indigo-700 to-violet-600 p-8 text-white shadow-sm sm:p-12">
-        <p class="text-sm font-semibold uppercase tracking-wide text-indigo-100">NYVA</p>
+    <section class="rounded-2xl bg-gradient-to-r from-blue-800 to-blue-500 p-8 text-white shadow-sm sm:p-12">
+        <p class="text-sm font-semibold uppercase tracking-wide text-blue-100">NYVA</p>
         <h1 class="mt-2 max-w-2xl text-3xl font-bold sm:text-4xl">Asistente virtual para la atención al cliente y la gestión de pedidos</h1>
-        <p class="mt-4 max-w-2xl text-indigo-100">
+        <p class="mt-4 max-w-2xl text-blue-100">
             Cada negocio tiene su propia página con su catálogo, sus horarios y un asistente que atiende y recibe pedidos.
         </p>
 
-        <a href="{{ route('login') }}" class="mt-6 inline-flex rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-indigo-700 hover:bg-indigo-50">
+        <a href="{{ route('login') }}" class="mt-6 inline-flex rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-blue-800 hover:bg-blue-50">
             Acceso para negocios
         </a>
     </section>

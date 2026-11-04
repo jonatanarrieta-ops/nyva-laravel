@@ -119,7 +119,7 @@ new #[Layout('layouts.public')] class extends Component {
 
 <div class="flex flex-col gap-6">
     <section class="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
-        <div class="h-32 bg-gradient-to-r from-indigo-700 to-violet-600 sm:h-44">
+        <div class="h-32 bg-gradient-to-r from-blue-800 to-blue-500 sm:h-44">
             @if ($establishment->coverUrl())
                 <img src="{{ $establishment->coverUrl() }}" alt="" class="h-full w-full object-cover">
             @endif
@@ -127,7 +127,7 @@ new #[Layout('layouts.public')] class extends Component {
 
         <div class="p-5 sm:p-6">
             <div class="-mt-14 flex flex-wrap items-end justify-between gap-3 sm:-mt-16">
-                <span class="flex size-20 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-indigo-100 text-2xl font-bold text-indigo-700 shadow-sm sm:size-24">
+                <span class="flex size-20 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-blue-100 text-2xl font-bold text-blue-800 shadow-sm sm:size-24">
                     @if ($establishment->logoUrl())
                         <img src="{{ $establishment->logoUrl() }}" alt="Logotipo de {{ $establishment->name }}" class="h-full w-full object-cover">
                     @else
@@ -144,7 +144,7 @@ new #[Layout('layouts.public')] class extends Component {
                 </span>
             </div>
 
-            <p class="mt-3 text-xs font-medium uppercase tracking-wide text-indigo-700">{{ $establishment->type }}</p>
+            <p class="mt-3 text-xs font-medium uppercase tracking-wide text-blue-800">{{ $establishment->type }}</p>
             <h1 class="mt-1 text-2xl font-bold text-zinc-900 sm:text-3xl">{{ $establishment->name }}</h1>
 
             @if ($establishment->description)
@@ -196,7 +196,7 @@ new #[Layout('layouts.public')] class extends Component {
             <p class="mt-1">¿Deseas vaciarlo y comenzar un nuevo pedido?</p>
 
             <div class="mt-3 flex flex-wrap gap-3">
-                <button type="button" wire:click="replaceCart" class="rounded-lg bg-indigo-600 px-4 py-2 font-semibold text-white hover:bg-indigo-700">
+                <button type="button" wire:click="replaceCart" class="rounded-lg bg-blue-700 px-4 py-2 font-semibold text-white hover:bg-blue-800">
                     Vaciar y agregar
                 </button>
                 <button type="button" wire:click="keepCart" class="rounded-lg border border-amber-300 px-4 py-2 font-semibold hover:bg-amber-100">
@@ -254,7 +254,7 @@ new #[Layout('layouts.public')] class extends Component {
                                         wire:click="addToCart({{ $product->id }})"
                                         wire:loading.attr="disabled"
                                         wire:target="addToCart({{ $product->id }})"
-                                        class="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+                                        class="rounded-lg bg-blue-700 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50"
                                     >
                                         Agregar
                                     </button>

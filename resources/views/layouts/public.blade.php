@@ -10,7 +10,7 @@
                 @isset($publicEstablishment)
                     {{-- Cada página pública lleva solo a su propio negocio. --}}
                     <a href="{{ route('catalog.show', $publicEstablishment) }}" wire:navigate class="flex min-w-0 items-center gap-2 font-semibold">
-                        <span class="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-indigo-100 text-sm font-bold text-indigo-700">
+                        <span class="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-blue-100 text-sm font-bold text-blue-800">
                             @if ($publicEstablishment->logoUrl())
                                 <img src="{{ $publicEstablishment->logoUrl() }}" alt="" class="size-full object-cover">
                             @else

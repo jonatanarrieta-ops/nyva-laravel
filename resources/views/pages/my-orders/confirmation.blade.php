@@ -46,7 +46,7 @@ new #[Layout('layouts.public')] #[Title('Pedido realizado')] class extends Compo
         </div>
     </dl>
 
-    <a href="{{ route('my-orders.show', $order->id) }}" wire:navigate class="mt-6 inline-block rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700">
+    <a href="{{ route('my-orders.show', $order->id) }}" wire:navigate class="mt-6 inline-block rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-800">
         Seguir mi pedido
     </a>
 </section>

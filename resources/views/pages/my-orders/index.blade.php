@@ -38,7 +38,7 @@ new #[Layout('layouts.public')] #[Title('Mis pedidos')] class extends Component 
                     href="{{ route('my-orders.show', $order->id) }}"
                     wire:navigate
                     wire:key="order-{{ $order->id }}"
-                    class="flex flex-col gap-2 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition hover:border-indigo-300 sm:flex-row sm:items-center sm:justify-between"
+                    class="flex flex-col gap-2 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition hover:border-blue-300 sm:flex-row sm:items-center sm:justify-between"
                 >
                     <span class="min-w-0">
                         <span class="block font-semibold text-zinc-900">Pedido #{{ $order->id }}</span>
