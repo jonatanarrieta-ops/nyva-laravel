@@ -266,3 +266,4 @@ class Establishment extends Model
         return $this->orderBlockReason() === null;
     }
 }
+
