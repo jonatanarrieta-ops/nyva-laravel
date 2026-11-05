@@ -16,7 +16,7 @@ class ConversationSeeder extends Seeder
                 'customer_name' => 'Cliente prueba',
                 'message' => '¿Tienen servicio a domicilio?',
                 'response' => 'Sí, contamos con servicio de entrega.',
-                'status' => true,
+                'status' => 'active',
             ]);
 
         } catch (\Throwable $th) {

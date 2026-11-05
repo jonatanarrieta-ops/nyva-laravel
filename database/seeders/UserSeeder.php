@@ -12,13 +12,13 @@ class UserSeeder extends Seeder
     {
         try {
 
-            User::create([
+            User::forceCreate([
                 'first_name' => 'Administrador',
                 'last_name' => 'NYVA',
                 'email' => 'admin@nyva.com',
                 'password' => Hash::make('password'),
                 'role' => 'admin',
-                'status' => true,
+                'status' => 'active',
                 'registered_at' => now(),
             ]);
 

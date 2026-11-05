@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('products', function (Blueprint $table) {
+        Schema::hasTable('products') || Schema::create('products', function (Blueprint $table) {
             $table->id();
 
             $table->foreignId('category_id')
@@ -22,13 +22,13 @@ return new class extends Migration
 
             $table->text('description')->nullable();
 
-            $table->decimal('price', 10, 2);
+            $table->decimal('price', 12, 2);
 
             $table->string('image')->nullable();
 
             $table->boolean('available')->default(true);
 
-            $table->boolean('status')->default(true);
+            $table->string('status', 30)->default('active');
 
             $table->timestamps();
         });

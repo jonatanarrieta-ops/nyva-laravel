@@ -7,8 +7,8 @@ test('guests are redirected to the login page', function () {
     $response->assertRedirect(route('login'));
 });
 
-test('authenticated users can visit the dashboard', function () {
-    $user = User::factory()->create();
+test('admins can visit the dashboard', function () {
+    $user = User::factory()->create(['role' => 'establishment_admin']);
     $this->actingAs($user);
 
     $response = $this->get(route('dashboard'));

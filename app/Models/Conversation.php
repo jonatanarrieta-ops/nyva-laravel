@@ -2,22 +2,35 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $establishment_id
+ * @property string|null $token
+ * @property string $customer_identifier
+ * @property string $status
+ * @property array<string, mixed>|null $draft
+ * @property CarbonInterface|null $started_at
+ * @property CarbonInterface|null $ended_at
+ * @property CarbonInterface|null $last_activity_at
+ */
 class Conversation extends Model
 {
-    use HasFactory;
-
     public $timestamps = false;
 
     protected $fillable = [
         'establishment_id',
+        'token',
         'customer_identifier',
         'started_at',
         'ended_at',
         'status',
+        'draft',
+        'last_activity_at',
     ];
 
     protected function casts(): array
@@ -25,7 +38,25 @@ class Conversation extends Model
         return [
             'started_at' => 'datetime',
             'ended_at' => 'datetime',
+            'last_activity_at' => 'datetime',
+            'draft' => 'array',
         ];
+    }
+
+    /**
+     * @return BelongsTo<Establishment, $this>
+     */
+    public function establishment(): BelongsTo
+    {
+        return $this->belongsTo(Establishment::class);
+    }
+
+    /**
+     * @return HasMany<ConversationMessage, $this>
+     */
+    public function messages(): HasMany
+    {
+        return $this->hasMany(ConversationMessage::class);
     }
 
     public function establishment(): BelongsTo

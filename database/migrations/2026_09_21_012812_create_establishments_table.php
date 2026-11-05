@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('establishments', function (Blueprint $table) {
+        Schema::hasTable('establishments') || Schema::create('establishments', function (Blueprint $table) {
             $table->id();
 
             $table->foreignId('user_id')
@@ -30,7 +30,7 @@ return new class extends Migration
 
             $table->string('email')->nullable();
 
-            $table->boolean('status')->default(true);
+            $table->string('status', 30)->default('active');
 
             $table->timestamp('registered_at')->useCurrent();
 

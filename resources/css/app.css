@@ -8,43 +8,180 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+ * Identidad NYVA: azul principal (#1D4ED8) sobre grises "slate".
+ * Las escalas zinc, gray y neutral se redefinen con los valores de slate para que
+ * Flux y las vistas existentes compartan una sola paleta.
+ */
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
-    --color-zinc-50: #fafafa;
-    --color-zinc-100: #f5f5f5;
-    --color-zinc-200: #e5e5e5;
-    --color-zinc-300: #d4d4d4;
-    --color-zinc-400: #a3a3a3;
-    --color-zinc-500: #737373;
-    --color-zinc-600: #525252;
-    --color-zinc-700: #404040;
-    --color-zinc-800: #262626;
-    --color-zinc-900: #171717;
-    --color-zinc-950: #0a0a0a;
+    --color-zinc-50: #f8fafc;
+    --color-zinc-100: #f1f5f9;
+    --color-zinc-200: #e2e8f0;
+    --color-zinc-300: #cbd5e1;
+    --color-zinc-400: #94a3b8;
+    --color-zinc-500: #64748b;
+    --color-zinc-600: #475569;
+    --color-zinc-700: #334155;
+    --color-zinc-800: #1e293b;
+    --color-zinc-900: #0f172a;
+    --color-zinc-950: #020617;
 
-    --color-accent: var(--color-neutral-800);
-    --color-accent-content: var(--color-neutral-800);
-    --color-accent-foreground: var(--color-white);
-}
+    --color-gray-50: #f8fafc;
+    --color-gray-100: #f1f5f9;
+    --color-gray-200: #e2e8f0;
+    --color-gray-300: #cbd5e1;
+    --color-gray-400: #94a3b8;
+    --color-gray-500: #64748b;
+    --color-gray-600: #475569;
+    --color-gray-700: #334155;
+    --color-gray-800: #1e293b;
+    --color-gray-900: #0f172a;
 
-@layer theme {
-    .dark {
-        --color-accent: var(--color-white);
-        --color-accent-content: var(--color-white);
-        --color-accent-foreground: var(--color-neutral-800);
-    }
+    --color-neutral-50: #f8fafc;
+    --color-neutral-100: #f1f5f9;
+    --color-neutral-200: #e2e8f0;
+    --color-neutral-300: #cbd5e1;
+    --color-neutral-400: #94a3b8;
+    --color-neutral-500: #64748b;
+    --color-neutral-600: #475569;
+    --color-neutral-700: #334155;
+    --color-neutral-800: #1e293b;
+
+    --color-accent: #1d4ed8;
+    --color-accent-content: #1e40af;
+    --color-accent-foreground: #ffffff;
 }
 
 @layer base {
-
     *,
     ::after,
     ::before,
     ::backdrop,
     ::file-selector-button {
-        border-color: var(--color-gray-200, currentColor);
+        border-color: var(--color-slate-200, currentColor);
     }
+
+    html {
+        color-scheme: light;
+    }
+
+    body {
+        @apply bg-slate-50 text-slate-800 antialiased;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+        @apply focus-visible:outline-none;
+    }
+
+    input,
+    select,
+    textarea {
+        @apply border-slate-300;
+    }
+}
+
+@layer components {
+    .nyva-card {
+        @apply rounded-xl border border-slate-200 bg-white shadow-[0_1px_2px_rgb(15_23_42/0.04),0_4px_16px_-8px_rgb(15_23_42/0.08)];
+    }
+
+    .nyva-label {
+        @apply mb-1.5 block text-sm font-medium text-slate-700;
+    }
+
+    .nyva-input {
+        @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-xs transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500;
+    }
+
+    .nyva-input[aria-invalid='true'] {
+        @apply border-red-400 focus:border-red-500 focus:ring-red-100;
+    }
+
+    .nyva-error {
+        @apply mt-1.5 text-sm text-red-600;
+    }
+
+    .nyva-btn {
+        @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white shadow-xs transition hover:bg-blue-800 focus-visible:ring-4 focus-visible:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-60;
+    }
+
+    .nyva-btn-secondary {
+        @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-4 focus-visible:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60;
+    }
+
+    .nyva-btn-danger {
+        @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-xs transition hover:bg-red-700 focus-visible:ring-4 focus-visible:ring-red-200 disabled:cursor-not-allowed disabled:opacity-60;
+    }
+
+    .nyva-link {
+        @apply rounded font-medium text-blue-700 transition hover:text-blue-800 hover:underline focus-visible:ring-2 focus-visible:ring-blue-200;
+    }
+
+    .nyva-link-danger {
+        @apply rounded font-medium text-red-600 transition hover:text-red-700 hover:underline focus-visible:ring-2 focus-visible:ring-red-200;
+    }
+
+    .nyva-badge {
+        @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap;
+    }
+
+    .nyva-table {
+        @apply w-full text-left text-sm;
+    }
+
+    .nyva-table thead {
+        @apply bg-slate-50 text-xs uppercase tracking-wide text-slate-500;
+    }
+
+    .nyva-table th {
+        @apply px-4 py-3 font-semibold whitespace-nowrap;
+    }
+
+    .nyva-table td {
+        @apply border-t border-slate-100 px-4 py-3 text-slate-700;
+    }
+
+    .nyva-table tbody tr {
+        @apply transition-colors hover:bg-slate-50/70;
+    }
+
+    .nyva-alert-success {
+        @apply flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800;
+    }
+
+    .nyva-alert-error {
+        @apply flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800;
+    }
+
+    .nyva-alert-warning {
+        @apply flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900;
+    }
+
+    .nyva-alert-info {
+        @apply flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900;
+    }
+}
+
+/* Elemento activo del menú lateral en azul suave. */
+[data-flux-sidebar-item][data-current] {
+    border-color: transparent !important;
+    background-color: var(--color-blue-50) !important;
+    color: var(--color-blue-700) !important;
+    box-shadow: none !important;
+}
+
+[data-flux-sidebar-item][data-current] [data-flux-icon] {
+    color: var(--color-blue-700);
+}
+
+/* La página pública mantiene campos y botones claros. */
+.nyva-public {
+    color-scheme: light;
 }
 
 [data-flux-field]:not(ui-radio, ui-checkbox) {
@@ -52,15 +189,11 @@
 }
 
 [data-flux-label] {
-    @apply  !mb-0 !leading-tight;
+    @apply !mb-0 !leading-tight text-slate-700;
 }
 
 input:focus[data-flux-control],
 textarea:focus[data-flux-control],
 select:focus[data-flux-control] {
-    @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
+    @apply outline-hidden ring-2 ring-blue-500 ring-offset-2;
 }
-
-/* \[:where(&)\]:size-4 {
-    @apply size-4;
-} */

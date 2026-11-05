@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('subscriptions', function (Blueprint $table) {
+        Schema::hasTable('subscriptions') || Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
 
             $table->foreignId('establishment_id')
@@ -28,7 +28,7 @@ return new class extends Migration
 
             $table->date('end_date')->nullable();
 
-            $table->boolean('status')->default(true);
+            $table->string('status', 30)->default('active');
 
             $table->timestamps();
         });

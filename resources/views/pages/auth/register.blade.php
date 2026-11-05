@@ -31,6 +31,29 @@
     		:placeholder="__('Last name')"
 	    />
 
+            <!-- First Name -->
+		<flux:input
+    		name="first_name"
+    		:label="__('First name')"
+    		:value="old('first_name')"
+    		type="text"
+   		 required
+    		autofocus
+    		autocomplete="given-name"
+    		:placeholder="__('First name')"
+	    />
+
+	    <!-- Last Name -->
+		<flux:input
+    		name="last_name"
+    		:label="__('Last name')"
+    		:value="old('last_name')"
+    		type="text"
+    		required
+    		autocomplete="family-name"
+    		:placeholder="__('Last name')"
+	    />
+
             <!-- Password -->
             <flux:input
                 name="password"

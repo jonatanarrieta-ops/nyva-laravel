@@ -11,11 +11,11 @@ class FrequentlyAskedQuestionSeeder extends Seeder
     {
         try {
 
-            FrequentlyAskedQuestion::create([
+            FrequentlyAskedQuestion::forceCreate([
                 'establishment_id' => 1,
                 'question' => '¿Cuál es el horario de atención?',
                 'answer' => 'Atendemos de lunes a sábado de 8:00 AM a 6:00 PM.',
-                'status' => true,
+                'status' => 'active',
             ]);
 
         } catch (\Throwable $th) {

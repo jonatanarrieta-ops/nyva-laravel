@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('categories', function (Blueprint $table) {
+        Schema::hasTable('categories') || Schema::create('categories', function (Blueprint $table) {
             $table->id();
 
             $table->foreignId('establishment_id')
@@ -22,7 +22,7 @@ return new class extends Migration
 
             $table->text('description')->nullable();
 
-            $table->boolean('status')->default(true);
+            $table->string('status', 30)->default('active');
 
             $table->timestamps();
         });

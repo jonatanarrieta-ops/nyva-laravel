@@ -1,165 +1,106 @@
-<x-layouts::app :title="__('Dashboard')">
-    <div class="mx-auto flex w-full max-w-[1600px] flex-col gap-8 p-4 sm:p-6 lg:p-8">
+<x-layouts::app :title="'Inicio'">
+    <div class="mx-auto flex w-full max-w-[1600px] flex-col gap-6 p-4 md:p-6 lg:p-8">
+        <x-page-header title="Panel principal" subtitle="Resumen de la actividad de tu negocio.">
+            <x-ui.button :href="route('orders.index')" icon="clipboard-document-list" wire:navigate>Ver pedidos</x-ui.button>
+        </x-page-header>
 
-       
+        @php
+            $statusItems = [
+                ['label' => 'Pendientes', 'value' => (int) $orderStatusCounts->get('pending', 0), 'color' => 'bg-amber-500'],
+                ['label' => 'Confirmados', 'value' => (int) $orderStatusCounts->get('confirmed', 0), 'color' => 'bg-sky-500'],
+                ['label' => 'En preparación', 'value' => (int) $orderStatusCounts->get('preparing', 0), 'color' => 'bg-blue-600'],
+                ['label' => 'Enviados', 'value' => (int) $orderStatusCounts->get('shipped', 0), 'color' => 'bg-violet-500'],
+                ['label' => 'Entregados', 'value' => (int) $orderStatusCounts->get('delivered', 0), 'color' => 'bg-emerald-500'],
+                ['label' => 'Cancelados', 'value' => (int) $orderStatusCounts->get('cancelled', 0), 'color' => 'bg-red-500'],
+            ];
+        @endphp
 
-        {{-- Indicadores --}}
-        <section>
-            <div class="mb-4">
-                <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">
-                    Resumen general
-                </h2>
-                <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                    Estado actual de tu operación.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-
-                @foreach ([
-                    [
-                        'label' => 'Establecimientos',
-                        'value' => $establishmentCount,
-                        'icon' => 'building-storefront',
-                        'detail' => 'Negocios registrados',
-                    ],
-                    [
-                        'label' => 'Categorías',
-                        'value' => $categoryCount,
-                        'icon' => 'squares-2x2',
-                        'detail' => 'Categorías creadas',
-                    ],
-                    [
-                        'label' => 'Productos',
-                        'value' => $productCount,
-                        'icon' => 'shopping-bag',
-                        'detail' => 'Productos registrados',
-                    ],
-                    [
-                        'label' => 'Pedidos pendientes',
-                        'value' => $pendingOrderCount,
-                        'icon' => 'clock',
-                        'detail' => $orderCount . ' pedidos en total',
-                    ],
-                ] as $stat)
-                    <article
-                        class="group rounded-xl border-zinc-200/70 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
-                    >
-                        <div class="flex items-center justify-between gap-3">
-                            <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-                                {{ $stat['label'] }}
-                            </p>
-
-                            <span class="flex size-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
-                                <flux:icon :name="$stat['icon']" class="size-5" />
-                            </span>
-                        </div>
-
-                        <p class="mt-5 pl-1 text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                            {{ number_format($stat['value']) }}
-                        </p>
-
-                    </article>
-                @endforeach
-
-            </div>
+        <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Indicadores">
+            <x-stat-card label="Ventas de hoy" :value="'$ '.number_format((float) $salesToday, 0, ',', '.')" hint="Pedidos no cancelados" tone="green" icon="banknotes" />
+            <x-stat-card label="Pedidos de hoy" :value="$ordersToday" hint="Recibidos hoy" icon="calendar-days" />
+            <x-stat-card label="Pedidos pendientes" :value="$pendingOrderCount" hint="Requieren atención" tone="amber" icon="clock" />
+            <x-stat-card label="Pedidos completados" :value="$completedOrderCount" hint="Entregados" tone="green" icon="check-badge" />
+            <x-stat-card label="Total de pedidos" :value="$orderCount" hint="Registrados" icon="clipboard-document-list" />
+            <x-stat-card label="Productos" :value="$productCount" hint="Registrados" tone="violet" icon="shopping-bag" />
+            <x-stat-card label="Categorías" :value="$categoryCount" hint="Creadas" tone="violet" icon="archive-box" />
+            <x-stat-card label="Establecimientos" :value="$establishmentCount" hint="A tu cargo" icon="building-storefront" />
         </section>
 
-        
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <section class="nyva-card p-5 lg:col-span-2">
+                <x-ui.section-header title="Ventas de los últimos 7 días" subtitle="Pedidos no cancelados" class="mb-5" />
+                <x-bar-chart :points="$salesChart" />
+            </section>
 
-        {{-- Paneles secundarios --}}
-        <section class="mt-4 grid grid-cols-1 gap-6 xl:grid-cols-5">
+            <section class="nyva-card p-5">
+                <x-ui.section-header title="Estado de los pedidos" :subtitle="$orderCount.' en total'" class="mb-5" />
+                <x-status-bars :items="$statusItems" />
+            </section>
+        </div>
 
-            {{-- Establecimientos --}}
-            <article class="rounded-xl  border-zinc-200/70 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 xl:col-span-3">
+        <section class="nyva-card overflow-hidden">
+            <x-ui.section-header title="Pedidos recientes" subtitle="Los últimos cinco pedidos" class="p-5">
+                <a href="{{ route('orders.index') }}" wire:navigate class="nyva-link text-sm">Ver todos</a>
+            </x-ui.section-header>
 
-                <div class="flex items-start justify-between gap-4">
-                    <div>
-                        <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">
-                            Tus establecimientos
-                        </h2>
-                        <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                            Administra los negocios asociados a tu cuenta.
-                        </p>
-                    </div>
+            @if ($recentOrders->isEmpty())
+                <x-ui.empty-state icon="clipboard-document-list" title="Todavía no hay pedidos" description="Cuando recibas pedidos, aparecerán aquí." />
+            @else
+                <div class="hidden overflow-x-auto md:block">
+                    <table class="nyva-table">
+                        <thead>
+                            <tr><th>Pedido</th><th>Cliente</th><th>Establecimiento</th><th>Total</th><th>Estado</th><th>Fecha</th><th class="text-right">Acción</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($recentOrders as $order)
+                                <tr>
+                                    <td class="font-semibold text-slate-800">#{{ $order->id }}</td>
+                                    <td class="whitespace-nowrap">{{ $order->customer_name }}</td>
+                                    <td class="whitespace-nowrap">{{ $order->establishment?->name }}</td>
+                                    <td class="whitespace-nowrap font-semibold text-slate-800">$ {{ number_format((float) $order->total, 0, ',', '.') }}</td>
+                                    <td><x-order-status :status="$order->status" :label="$order->statusLabel()" /></td>
+                                    <td class="whitespace-nowrap">{{ $order->ordered_at?->format('d/m/Y H:i') ?? '—' }}</td>
+                                    <td class="text-right"><a href="{{ route('orders.index', ['order' => $order->id]) }}" class="nyva-link">Ver detalle</a></td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
 
-                    <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-                        <flux:icon name="building-storefront" class="size-5" />
+                <div class="divide-y divide-slate-100 border-t border-slate-100 md:hidden">
+                    @foreach ($recentOrders as $order)
+                        <a href="{{ route('orders.index', ['order' => $order->id]) }}" class="flex items-center justify-between gap-3 px-5 py-4 hover:bg-slate-50">
+                            <span class="min-w-0">
+                                <span class="block font-semibold text-slate-800">#{{ $order->id }} · {{ $order->customer_name }}</span>
+                                <span class="block truncate text-xs text-slate-500">{{ $order->ordered_at?->format('d/m/Y H:i') }} · $ {{ number_format((float) $order->total, 0, ',', '.') }}</span>
+                            </span>
+                            <x-order-status :status="$order->status" :label="$order->statusLabel()" />
+                        </a>
+                    @endforeach
+                </div>
+            @endif
+        </section>
+
+        <section class="nyva-card p-5">
+            <x-ui.section-header title="Suscripciones" subtitle="Planes de tus establecimientos" class="mb-3" />
+
+            @forelse ($subscriptions as $subscription)
+                @php
+                    $expired = $subscription->end_date?->endOfDay()->isPast();
+                @endphp
+                <div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 py-3 text-sm first:border-0">
+                    <span>
+                        <span class="font-semibold text-slate-800">{{ $subscription->plan?->name ?? 'Plan sin nombre' }}</span>
+                        <span class="text-slate-500">· {{ $subscription->establishment?->name }}</span>
                     </span>
+
+                    <x-ui.badge :tone="$expired ? 'red' : 'green'">
+                        {{ $subscription->end_date ? ($expired ? 'Venció el ' : 'Vence el ').$subscription->end_date->format('d/m/Y') : 'Sin vencimiento' }}
+                    </x-ui.badge>
                 </div>
-
-            <div class="mt-6 flex min-h-48 flex-col items-start rounded-xl border border-zinc-200/70 bg-zinc-50 p-6 dark:border-zinc-700 dark:bg-zinc-800/50">
-
-                {{-- Información del establecimiento --}}
-                <div>
-                    <p class="text-3xl font-bold leading-none tracking-tight text-zinc-700 dark:text-zinc-2000">
-                        {{ number_format($establishmentCount) }}
-                    </p>
-
-                    <p class="mt-3 text-sm text-zinc-700 dark:text-zinc-2000">
-                        Establecimientos registrados
-                    </p>
-                </div>
-
-            </div>
-
-            <div class="mt-5">
-                <flux:button
-                    :href="route('establishments.index')"
-                    variant="outline"
-                    icon="arrow-right"
-                    wire:navigate
-                >
-                    Gestionar establecimientos
-                </flux:button>
-            </div>            
-
-            </article>
-
-            {{-- Suscripciones --}}
-            <article class="rounded-xl border-zinc-200/70 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 xl:col-span-2">
-                <div class="flex items-start justify-between gap-4">
-                    <div>
-                        <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">
-                            Suscripciones
-                        </h2>
-                        <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                            Planes asociados a tus negocios.
-                        </p>
-                    </div>
-
-                    <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-                        <flux:icon name="credit-card" class="size-5" />
-                    </span>
-                </div>
-
-                <div class="mt-5">
-                    @forelse ($subscriptions as $subscription)
-                        <div class=" border-zinc-100 py-4 last:border-0 dark:border-zinc-800">
-                            <div class="flex items-center justify-between gap-3">
-                                <p class="font-medium text-zinc-900 dark:text-white">
-                                    {{ $subscription->plan?->name ?? 'Plan no disponible' }}
-                                </p>
-
-                                <span class="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-                                    {{ $subscription->status }}
-                                </span>
-                            </div>
-
-                            <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                                Periodo: {{ $subscription->billing_period }}
-                            </p>
-                        </div>
-                    @empty
-                        <div class="rounded-xl bg-zinc-50 p-4 dark:bg-zinc-800/50">
-                            <p class="text-sm text-zinc-600 dark:text-zinc-300">
-                                No hay suscripciones registradas para tus establecimientos.
-                            </p>
-                        </div>
-                    @endforelse
-                </div>
-            </article>
-
+            @empty
+                <p class="text-sm text-slate-500">No tienes suscripciones registradas.</p>
+            @endforelse
         </section>
     </div>
 </x-layouts::app>

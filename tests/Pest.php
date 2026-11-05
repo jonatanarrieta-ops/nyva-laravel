@@ -1,5 +1,11 @@
 <?php
 
+use App\Models\Category;
+use App\Models\Establishment;
+use App\Models\Order;
+use App\Models\Plan;
+use App\Models\Product;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -47,4 +53,71 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * Crea un administrador con un establecimiento, una categoría y un producto.
+ *
+ * @return array{0: User, 1: Establishment, 2: Category, 3: Product}
+ */
+function catalogFixture(array $productAttributes = []): array
+{
+    $admin = User::factory()->create(['role' => 'establishment_admin']);
+
+    $establishment = $admin->establishments()->create([
+        'name' => 'Local de prueba',
+        'type' => 'restaurant',
+        'description' => 'Descripción de prueba',
+        'address' => 'Calle 1 # 2-3',
+        'phone' => '3001234567',
+        'email' => 'local@example.com',
+    ]);
+
+    $plan = Plan::create([
+        'name' => 'Plan de prueba',
+        'monthly_price' => 10000,
+        'features' => array_keys(Plan::FEATURES),
+        'status' => 'active',
+    ]);
+
+    $establishment->subscriptions()->create([
+        'plan_id' => $plan->id,
+        'billing_period' => 'monthly',
+        'start_date' => now()->subDay(),
+        'status' => 'active',
+    ]);
+
+    $category = Category::create([
+        'establishment_id' => $establishment->id,
+        'name' => 'Hamburguesas',
+        'status' => 'active',
+    ]);
+
+    $product = Product::create([
+        'category_id' => $category->id,
+        'name' => 'Hamburguesa clásica',
+        'price' => 25000,
+        'available' => true,
+        'status' => 'active',
+        ...$productAttributes,
+    ]);
+
+    return [$admin, $establishment, $category, $product];
+}
+
+/**
+ * Crea un pedido simple asociado a un establecimiento.
+ */
+function makeOrder(int $establishmentId, string $status = 'pending', ?int $userId = null): Order
+{
+    return Order::create([
+        'establishment_id' => $establishmentId,
+        'user_id' => $userId,
+        'customer_name' => 'Cliente',
+        'customer_phone' => '3000000000',
+        'delivery_address' => 'Calle de prueba',
+        'total' => 1000,
+        'status' => $status,
+        'ordered_at' => now(),
+    ]);
 }

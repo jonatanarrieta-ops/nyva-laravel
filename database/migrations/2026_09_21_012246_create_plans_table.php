@@ -11,18 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('plans', function (Blueprint $table) {
+        Schema::hasTable('plans') || Schema::create('plans', function (Blueprint $table) {
             $table->id();
 
             $table->string('name');
 
             $table->text('description')->nullable();
 
-            $table->decimal('monthly_price', 10, 2);
+            $table->decimal('monthly_price', 12, 2);
 
-            $table->decimal('annual_price', 10, 2)->nullable();
+            $table->decimal('annual_price', 12, 2)->nullable();
 
-            $table->boolean('status')->default(true);
+            $table->string('status', 30)->default('active');
 
             $table->timestamps();
         });

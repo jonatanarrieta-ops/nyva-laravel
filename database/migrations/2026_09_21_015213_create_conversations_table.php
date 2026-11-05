@@ -11,20 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('conversations', function (Blueprint $table) {
+        Schema::hasTable('conversations') || Schema::create('conversations', function (Blueprint $table) {
             $table->id();
 
             $table->foreignId('establishment_id')
                 ->constrained()
                 ->cascadeOnDelete();
 
-            $table->string('customer_name')->nullable();
+            $table->string('customer_identifier')->nullable();
 
-            $table->text('message');
+            $table->dateTime('started_at')->nullable();
 
-            $table->text('response');
+            $table->dateTime('ended_at')->nullable();
 
-            $table->string('status')->default('completed');
+            $table->string('status', 30)->default('active');
 
             $table->timestamps();
         });

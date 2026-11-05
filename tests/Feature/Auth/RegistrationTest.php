@@ -27,3 +27,7 @@ test('new users can register', function () {
     $this->assertAuthenticated();
 
 });
+
+test('registration form asks for the email address', function () {
+    $this->get(route('register'))->assertSee('name="email"', false);
+});
