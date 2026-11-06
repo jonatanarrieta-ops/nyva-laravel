@@ -72,37 +72,47 @@ test('an owner without establishments sees a clear message', function () {
 test('schedules are saved and control the orders', function () {
     [$owner, $establishment] = catalogFixture();
     $today = strtolower(now()->format('l'));
+    $later = strtolower(now()->addDays(2)->format('l'));
 
-    $component = Livewire::actingAs($owner)->test('pages::schedules.index');
+    $week = fn (string $openDay) => collect(array_keys(Schedule::DAYS))
+        ->mapWithKeys(fn (string $day) => [$day => [
+            'enabled' => $day === $openDay ? '1' : '0',
+            'opens_at' => '00:00',
+            'closes_at' => '23:59',
+        ]])
+        ->all();
 
-    foreach (array_keys(Schedule::DAYS) as $day) {
-        $component->set("days.$day.enabled", false);
-    }
+    $this->actingAs($owner)->get(route('schedules.index'))->assertOk()->assertSee('Lunes');
 
-    $component->set("days.$today.enabled", true)
-        ->set("days.$today.opens_at", '00:00')
-        ->set("days.$today.closes_at", '23:59')
-        ->call('save')
-        ->assertHasNoErrors();
+    $this->put(route('schedules.update'), ['establishment' => $establishment->id, 'days' => $week($today)])
+        ->assertRedirect(route('schedules.index', ['establishment' => $establishment->id]))
+        ->assertSessionHasNoErrors();
 
     expect($establishment->schedules()->count())->toBe(7)
         ->and($establishment->fresh()->isWithinSchedule())->toBeTrue();
 
-    $component->set("days.$today.enabled", false)
-        ->set('days.'.strtolower(now()->addDays(2)->format('l')).'.enabled', true)
-        ->call('save');
+    $this->put(route('schedules.update'), ['establishment' => $establishment->id, 'days' => $week($later)]);
 
-    expect($establishment->fresh()->canReceiveOrders())->toBeFalse();
+    expect($establishment->schedules()->count())->toBe(7)
+        ->and($establishment->fresh()->canReceiveOrders())->toBeFalse();
 });
 
 test('invalid schedules are rejected', function () {
-    [$owner] = catalogFixture();
+    [$owner, $establishment] = catalogFixture();
 
-    Livewire::actingAs($owner)
-        ->test('pages::schedules.index')
-        ->set('days.monday.opens_at', 'nada')
-        ->call('save')
-        ->assertHasErrors('days.monday.opens_at');
+    $this->actingAs($owner)
+        ->put(route('schedules.update'), [
+            'establishment' => $establishment->id,
+            'days' => ['monday' => ['enabled' => '1', 'opens_at' => 'nada', 'closes_at' => '20:00']],
+        ])
+        ->assertSessionHasErrors('days.monday.opens_at');
+
+    $this->put(route('schedules.update'), [
+        'establishment' => $establishment->id,
+        'days' => ['monday' => ['enabled' => '1', 'opens_at' => '08:00', 'closes_at' => '08:00']],
+    ])->assertSessionHasErrors('days.monday.closes_at');
+
+    expect($establishment->schedules()->count())->toBe(0);
 });
 
 test('overnight schedules work', function () {
@@ -118,19 +128,33 @@ test('faqs are managed per establishment', function () {
     [, $other] = catalogFixture();
     $foreign = $other->frequentlyAskedQuestions()->create(['question' => 'Ajena', 'answer' => 'Ajena', 'status' => 'active']);
 
-    $component = Livewire::actingAs($owner)
-        ->test('pages::faqs.index')
-        ->call('create')
-        ->set('question', '¿Tienen domicilio?')
-        ->set('answer', 'Sí.')
-        ->call('save')
-        ->assertHasNoErrors()
-        ->assertDontSee('Ajena');
+    $this->actingAs($owner)
+        ->post(route('faqs.store'), ['establishment' => $establishment->id, 'question' => '¿Tienen domicilio?', 'answer' => 'Sí.', 'status' => '1'])
+        ->assertRedirect(route('faqs.index', ['establishment' => $establishment->id]))
+        ->assertSessionHasNoErrors();
 
-    expect($establishment->frequentlyAskedQuestions()->count())->toBe(1);
+    $faq = $establishment->frequentlyAskedQuestions()->firstOrFail();
 
-    expect(fn () => $component->call('delete', $foreign->id))
-        ->toThrow(ModelNotFoundException::class);
+    $this->get(route('faqs.index'))->assertSee('¿Tienen domicilio?')->assertDontSee('Ajena');
+
+    $this->put(route('faqs.update', $faq->id), ['question' => '¿Hacen domicilios?', 'answer' => 'Sí, en toda la ciudad.', 'status' => '0'])
+        ->assertSessionHasNoErrors();
+
+    expect($faq->fresh()->question)->toBe('¿Hacen domicilios?')
+        ->and($faq->fresh()->status)->toBe('inactive');
+
+    $this->post(route('faqs.store'), ['establishment' => $establishment->id, 'question' => '', 'answer' => ''])
+        ->assertSessionHasErrors(['question', 'answer']);
+
+    $this->get(route('faqs.edit', $foreign->id))->assertNotFound();
+    $this->delete(route('faqs.destroy', $foreign->id))->assertNotFound();
+    $this->post(route('faqs.store'), ['establishment' => $other->id, 'question' => 'Intrusa', 'answer' => 'X'])->assertNotFound();
+
+    $this->delete(route('faqs.destroy', $faq->id))->assertSessionHas('success');
+
+    expect($establishment->frequentlyAskedQuestions()->count())->toBe(0)
+        ->and($foreign->fresh())->not->toBeNull()
+        ->and($other->frequentlyAskedQuestions()->count())->toBe(1);
 });
 
 test('the chatbot settings are saved', function () {

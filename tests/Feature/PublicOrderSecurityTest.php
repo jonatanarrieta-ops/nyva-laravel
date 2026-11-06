@@ -5,7 +5,6 @@ use App\Models\Establishment;
 use App\Models\Order;
 use App\Models\User;
 use App\Services\Cart;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
@@ -133,10 +132,11 @@ test('an owner cannot switch to a foreign establishment', function () {
     [$owner] = catalogFixture();
     [, $foreign] = catalogFixture();
 
-    expect(fn () => Livewire::actingAs($owner)
-        ->test('pages::faqs.index')
-        ->set('currentEstablishmentId', $foreign->id))
-        ->toThrow(ModelNotFoundException::class);
+    $this->actingAs($owner);
+
+    $this->get(route('faqs.index', ['establishment' => $foreign->id]))->assertNotFound();
+    $this->get(route('schedules.index', ['establishment' => $foreign->id]))->assertNotFound();
+    $this->put(route('schedules.update'), ['establishment' => $foreign->id, 'days' => []])->assertNotFound();
 });
 
 test('owners only see their own data in every list', function (string $routeName) {

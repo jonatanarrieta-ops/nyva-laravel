@@ -5,7 +5,9 @@ use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FaqController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\TrackingController;
 use Illuminate\Support\Facades\Route;
 
@@ -57,8 +59,11 @@ Route::middleware(['auth', 'establishment:orders'])->group(function () {
 });
 
 Route::middleware(['auth', 'establishment:settings'])->group(function () {
-    Route::livewire('schedules', 'pages::schedules.index')->name('schedules.index');
-    Route::livewire('faqs', 'pages::faqs.index')->name('faqs.index');
+    Route::prefix('schedules')->name('schedules.')->controller(ScheduleController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::put('/', 'update')->name('update');
+    });
+    Route::resource('faqs', FaqController::class)->except('show');
     Route::livewire('chatbot', 'pages::chatbot.settings')->name('chatbot.settings');
     Route::livewire('team', 'pages::team.index')->name('team.index');
 });
