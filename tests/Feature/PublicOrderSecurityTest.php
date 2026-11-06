@@ -60,15 +60,11 @@ test('the public link shows masked data and protects itself', function () use ($
 test('the public link cannot modify an order', function () {
     [, $establishment] = catalogFixture();
     $order = makeOrder($establishment->id);
+    $url = route('orders.track', $order->public_token);
 
-    $component = Livewire::test('pages::tracking.show', ['token' => $order->public_token]);
-
-    foreach (['updateStatus', 'cancel', 'save'] as $method) {
-        expect(fn () => $component->call($method, 'cancelled'))->toThrow(Exception::class);
+    foreach (['post', 'put', 'patch', 'delete'] as $method) {
+        $this->{$method}($url, ['status' => 'cancelled'])->assertMethodNotAllowed();
     }
-
-    expect(fn () => Livewire::test('pages::tracking.show', ['token' => $order->public_token])->set('token', 'x'))
-        ->toThrow(Exception::class);
 
     expect($order->fresh()->status)->toBe('pending');
 });

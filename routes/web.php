@@ -4,6 +4,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\TrackingController;
 use Illuminate\Support\Facades\Route;
 
 Route::controller(CatalogController::class)->group(function () {
@@ -24,7 +25,7 @@ Route::controller(CheckoutController::class)->group(function () {
     Route::post('checkout', 'store')->name('checkout.store');
 });
 
-Route::livewire('pedido/{token}', 'pages::tracking.show')
+Route::get('pedido/{token}', [TrackingController::class, 'show'])
     ->middleware(['throttle:60,1', 'tracking'])
     ->where('token', '[A-Za-z0-9]{40}')
     ->name('orders.track');
