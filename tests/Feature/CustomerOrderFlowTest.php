@@ -4,15 +4,18 @@ use App\Actions\PlaceOrder;
 use App\Models\Order;
 use App\Models\User;
 use App\Services\Cart;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-function filledCheckout(User $customer)
+function checkoutData(array $overrides = []): array
 {
-    return Livewire::actingAs($customer)
-        ->test('pages::checkout.index')
-        ->set('customer_name', 'Cliente Demo')
-        ->set('customer_phone', '3001234567')
-        ->set('delivery_address', 'Calle 10 # 20-30');
+    return [
+        'order_key' => (string) Str::uuid(),
+        'customer_name' => 'Cliente Demo',
+        'customer_phone' => '3001234567',
+        'delivery_address' => 'Calle 10 # 20-30',
+        ...$overrides,
+    ];
 }
 
 test('guests can reach the checkout but not the private order history', function () {
@@ -21,9 +24,13 @@ test('guests can reach the checkout but not the private order history', function
 });
 
 test('an empty cart cannot reach the checkout', function () {
-    Livewire::actingAs(User::factory()->create())
-        ->test('pages::checkout.index')
+    $this->actingAs(User::factory()->create())
+        ->get(route('checkout'))
         ->assertRedirect(route('cart.index'));
+
+    $this->post(route('checkout.store'), checkoutData())->assertRedirect(route('cart.index'));
+
+    expect(Order::count())->toBe(0);
 });
 
 test('the checkout shows a review and creates a secure pending order', function () {
@@ -33,15 +40,18 @@ test('the checkout shows a review and creates a secure pending order', function 
     $cart->add($product);
     $cart->increase($product->id);
 
-    $component = filledCheckout($customer)
+    $this->actingAs($customer)
+        ->get(route('checkout'))
+        ->assertOk()
         ->assertSee($establishment->name)
         ->assertSee($product->name)
-        ->assertSee('$ 50.000')
-        ->call('placeOrder');
+        ->assertSee('$ 50.000');
+
+    $response = $this->post(route('checkout.store'), checkoutData());
 
     $order = Order::with('orderItems')->firstOrFail();
 
-    $component->assertRedirect(route('my-orders.confirmation', $order->id));
+    $response->assertRedirect(route('my-orders.confirmation', $order->id));
 
     expect($order->user_id)->toBe($customer->id)
         ->and($order->establishment_id)->toBe($establishment->id)
@@ -56,12 +66,16 @@ test('checkout data is validated on the server', function () {
     [, , , $product] = catalogFixture();
     app(Cart::class)->add($product);
 
-    filledCheckout(User::factory()->create())
-        ->set('customer_name', '')
-        ->set('customer_phone', 'abc')
-        ->set('delivery_address', '')
-        ->call('placeOrder')
-        ->assertHasErrors(['customer_name', 'customer_phone', 'delivery_address']);
+    $this->actingAs(User::factory()->create())
+        ->post(route('checkout.store'), checkoutData([
+            'customer_name' => '',
+            'customer_phone' => 'abc',
+            'delivery_address' => '',
+        ]))
+        ->assertSessionHasErrors(['customer_name', 'customer_phone', 'delivery_address']);
+
+    $this->post(route('checkout.store'), checkoutData(['order_key' => 'no-es-uuid']))
+        ->assertSessionHasErrors('order_key');
 
     expect(Order::count())->toBe(0);
 });
@@ -70,11 +84,12 @@ test('a product that becomes unavailable stops the order and keeps the cart', fu
     [, , , $product] = catalogFixture();
     $cart = app(Cart::class);
     $cart->add($product);
-    $checkout = filledCheckout(User::factory()->create());
 
     $product->update(['available' => false]);
 
-    $checkout->call('placeOrder')->assertHasErrors('cart');
+    $this->actingAs(User::factory()->create())
+        ->post(route('checkout.store'), checkoutData())
+        ->assertSessionHasErrors('cart');
 
     expect(Order::count())->toBe(0)
         ->and($cart->quantities())->not->toBe([]);
@@ -83,11 +98,12 @@ test('a product that becomes unavailable stops the order and keeps the cart', fu
 test('the order uses the price at confirmation time', function () {
     [, , , $product] = catalogFixture();
     app(Cart::class)->add($product);
-    $checkout = filledCheckout(User::factory()->create());
+
+    $this->actingAs(User::factory()->create())->get(route('checkout'))->assertSee('$ 25.000');
 
     $product->update(['price' => 40000]);
 
-    $checkout->call('placeOrder');
+    $this->post(route('checkout.store'), checkoutData());
 
     expect((float) Order::firstOrFail()->total)->toBe(40000.0);
 });
@@ -96,8 +112,10 @@ test('prices cannot be sent from the browser', function () {
     [, , , $product] = catalogFixture();
     app(Cart::class)->add($product);
 
-    expect(fn () => filledCheckout(User::factory()->create())->set('total', 1))
-        ->toThrow(Exception::class);
+    $this->actingAs(User::factory()->create())
+        ->post(route('checkout.store'), checkoutData(['total' => 1, 'price' => 1, 'unit_price' => 1]));
+
+    expect((float) Order::firstOrFail()->total)->toBe(25000.0);
 });
 
 test('a failure while saving items rolls the order back', function () {

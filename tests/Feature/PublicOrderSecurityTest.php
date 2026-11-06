@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\User;
 use App\Services\Cart;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 
@@ -19,15 +20,16 @@ test('guests can place an order and follow it with its link', function () {
     [, , , $product] = catalogFixture();
     app(Cart::class)->add($product);
 
-    $component = Livewire::test('pages::checkout.index')
-        ->set('customer_name', 'Ana Ruiz')
-        ->set('customer_phone', '3001234567')
-        ->set('delivery_address', 'Calle 10')
-        ->call('placeOrder');
+    $response = $this->post(route('checkout.store'), [
+        'order_key' => (string) Str::uuid(),
+        'customer_name' => 'Ana Ruiz',
+        'customer_phone' => '3001234567',
+        'delivery_address' => 'Calle 10',
+    ]);
 
     $order = Order::firstOrFail();
 
-    $component->assertRedirect(route('orders.track', $order->public_token));
+    $response->assertRedirect(route('orders.track', $order->public_token));
 
     expect($order->user_id)->toBeNull();
 });

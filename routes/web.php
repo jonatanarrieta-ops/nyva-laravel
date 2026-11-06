@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,7 +19,11 @@ Route::prefix('carrito')->name('cart.')->controller(CartController::class)->grou
     Route::delete('productos/{product}', 'destroy')->whereNumber('product')->name('items.destroy');
 });
 
-Route::livewire('checkout', 'pages::checkout.index')->name('checkout');
+Route::controller(CheckoutController::class)->group(function () {
+    Route::get('checkout', 'create')->name('checkout');
+    Route::post('checkout', 'store')->name('checkout.store');
+});
+
 Route::livewire('pedido/{token}', 'pages::tracking.show')
     ->middleware(['throttle:60,1', 'tracking'])
     ->where('token', '[A-Za-z0-9]{40}')
