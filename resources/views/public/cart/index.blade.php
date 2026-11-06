@@ -37,13 +37,16 @@
                                 @endunless
                             </div>
 
-                            <form method="POST" action="{{ route('cart.items.destroy', $line['product']->id) }}">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-sm font-medium text-red-600 hover:text-red-700">
+                            <x-confirm-action
+                                :name="'remove-item-'.$line['product']->id"
+                                :action="route('cart.items.destroy', $line['product']->id)"
+                                title="¿Eliminar este producto?"
+                                :message="'Se quitará '.$line['product']->name.' de tu carrito.'"
+                            >
+                                <button type="button" class="text-sm font-medium text-red-600 hover:text-red-700">
                                     Eliminar
                                 </button>
-                            </form>
+                            </x-confirm-action>
                         </div>
 
                         <div class="mt-3 flex items-center justify-between">
@@ -76,13 +79,17 @@
                 </div>
 
                 <div class="mt-4 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-                    <form method="POST" action="{{ route('cart.clear') }}">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" onclick="return confirm('¿Seguro que deseas vaciar el carrito?')" class="w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-50">
+                    <x-confirm-action
+                        name="clear-cart"
+                        :action="route('cart.clear')"
+                        title="¿Vaciar el carrito?"
+                        message="Se quitarán todos los productos de tu pedido."
+                        confirm="Vaciar carrito"
+                    >
+                        <button type="button" class="w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-50">
                             Vaciar carrito
                         </button>
-                    </form>
+                    </x-confirm-action>
 
                     @if ($hasUnavailable)
                         <span class="rounded-lg bg-zinc-200 px-5 py-2.5 text-center text-sm font-semibold text-zinc-500">Continuar al pago</span>
