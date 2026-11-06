@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\TrackingController;
 use Illuminate\Support\Facades\Route;
 
@@ -45,8 +47,8 @@ Route::middleware(['auth', 'establishment'])->group(function () {
 });
 
 Route::middleware(['auth', 'establishment:catalog'])->group(function () {
-    Route::livewire('categories', 'pages::categories.index')->name('categories.index');
-    Route::livewire('products', 'pages::products.index')->name('products.index');
+    Route::resource('categories', CategoryController::class)->except('show');
+    Route::resource('products', ProductController::class)->except('show');
 });
 
 Route::middleware(['auth', 'establishment:orders'])->group(function () {

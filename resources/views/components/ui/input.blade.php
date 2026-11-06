@@ -7,6 +7,7 @@
 
     <input
         id="{{ $name }}"
+        name="{{ $name }}"
         type="{{ $type }}"
         @error($name) aria-invalid="true" aria-describedby="{{ $name }}-error" @enderror
         {{ $attributes->class('nyva-input') }}

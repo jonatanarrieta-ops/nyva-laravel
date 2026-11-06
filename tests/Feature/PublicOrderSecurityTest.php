@@ -139,17 +139,18 @@ test('an owner cannot switch to a foreign establishment', function () {
         ->toThrow(ModelNotFoundException::class);
 });
 
-test('owners only see their own data in every list', function (string $component) {
+test('owners only see their own data in every list', function (string $routeName) {
     [$owner] = catalogFixture();
     [, $foreign] = catalogFixture();
     $foreign->update(['name' => 'Negocio ajeno']);
     $foreign->categories()->update(['name' => 'Categoría ajena']);
 
-    Livewire::actingAs($owner)
-        ->test($component)
+    $this->actingAs($owner)
+        ->get(route($routeName))
+        ->assertOk()
         ->assertDontSee('Negocio ajeno')
         ->assertDontSee('Categoría ajena');
-})->with(['pages::categories.index', 'pages::products.index', 'orders.index', 'pages::reports.index']);
+})->with(['categories.index', 'products.index', 'orders.index', 'reports.index']);
 
 test('users cannot raise their own role from the profile', function () {
     $user = User::factory()->create();

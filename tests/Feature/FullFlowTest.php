@@ -45,22 +45,21 @@ test('the three modules work together from the platform to the reports', functio
         ->call('save')
         ->assertHasNoErrors();
 
-    Livewire::actingAs($owner)
-        ->test('pages::categories.index')
-        ->call('createCategory')
-        ->set('establishmentId', (string) $establishment->id)
-        ->set('name', 'Hamburguesas')
-        ->call('save')
-        ->assertHasNoErrors();
+    $this->actingAs($owner)
+        ->post(route('categories.store'), [
+            'establishment_id' => $establishment->id,
+            'name' => 'Hamburguesas',
+            'status' => '1',
+        ])
+        ->assertSessionHasNoErrors();
 
-    Livewire::actingAs($owner)
-        ->test('pages::products.index')
-        ->call('createProduct')
-        ->set('categoryId', (string) Category::firstOrFail()->id)
-        ->set('name', 'Hamburguesa clásica')
-        ->set('price', '25000')
-        ->call('save')
-        ->assertHasNoErrors();
+    $this->post(route('products.store'), [
+        'category_id' => Category::firstOrFail()->id,
+        'name' => 'Hamburguesa clásica',
+        'price' => '25000',
+        'available' => '1',
+        'status' => '1',
+    ])->assertSessionHasNoErrors();
 
     Auth::logout();
 

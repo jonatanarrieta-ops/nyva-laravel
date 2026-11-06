@@ -7,6 +7,7 @@
 
     <select
         id="{{ $name }}"
+        name="{{ $name }}"
         @error($name) aria-invalid="true" aria-describedby="{{ $name }}-error" @enderror
         {{ $attributes->class('nyva-input') }}
     >

@@ -193,14 +193,13 @@ test('the plan limits products on the server', function () {
     [$owner, $establishment, $category] = catalogFixture();
     $establishment->currentPlan()->update(['product_limit' => 1]);
 
-    Livewire::actingAs($owner)
-        ->test('pages::products.index')
-        ->call('createProduct')
-        ->set('categoryId', (string) $category->id)
-        ->set('name', 'Excedente')
-        ->set('price', '1000')
-        ->call('save')
-        ->assertHasErrors('categoryId');
+    $this->actingAs($owner)
+        ->post(route('products.store'), [
+            'category_id' => $category->id,
+            'name' => 'Excedente',
+            'price' => '1000',
+        ])
+        ->assertSessionHasErrors('category_id');
 
     expect(Product::where('name', 'Excedente')->exists())->toBeFalse();
 });
@@ -209,12 +208,15 @@ test('reducing a plan keeps the existing products', function () {
     [$owner, $establishment, , $product] = catalogFixture();
     $establishment->currentPlan()->update(['product_limit' => 1]);
 
-    Livewire::actingAs($owner)
-        ->test('pages::products.index')
-        ->call('editProduct', $product->id)
-        ->set('name', 'Editado')
-        ->call('save')
-        ->assertHasNoErrors();
+    $this->actingAs($owner)
+        ->put(route('products.update', $product->id), [
+            'category_id' => $product->category_id,
+            'name' => 'Editado',
+            'price' => (string) $product->price,
+            'available' => '1',
+            'status' => '1',
+        ])
+        ->assertSessionHasNoErrors();
 
     expect($product->fresh()->name)->toBe('Editado');
 });
