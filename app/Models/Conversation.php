@@ -20,6 +20,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Conversation extends Model
 {
+    public const STATUS_LABELS = [
+        'active' => 'Activa',
+        'closed' => 'Cerrada',
+    ];
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -41,6 +46,11 @@ class Conversation extends Model
             'last_activity_at' => 'datetime',
             'draft' => 'array',
         ];
+    }
+
+    public function statusLabel(): string
+    {
+        return self::STATUS_LABELS[$this->status] ?? $this->status;
     }
 
     /**

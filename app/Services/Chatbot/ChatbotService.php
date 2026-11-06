@@ -4,12 +4,22 @@ namespace App\Services\Chatbot;
 
 use App\Actions\PlaceOrder;
 use App\Models\Conversation;
+use App\Models\ConversationMessage;
 use App\Models\Establishment;
 use Illuminate\Support\Str;
 
 class ChatbotService
 {
     private const DRAFT_HOURS = 24;
+
+    /** Marca en el payload de los mensajes que pertenecen al flujo de pedido. */
+    public const ORDER_FLAG = 'order';
+
+    /** Cantidad de mensajes anteriores que recibe la IA. */
+    private const HISTORY_SIZE = 8;
+
+    /** Mensajes recientes que se revisan para armar el historial. */
+    private const HISTORY_SCAN = 30;
 
     public function __construct(
         private StructuredResponder $structured,
@@ -50,6 +60,18 @@ class ChatbotService
     }
 
     /**
+     * Cierra la conversación y descarta el pedido que no se confirmó.
+     */
+    public function close(Conversation $conversation): void
+    {
+        $conversation->update([
+            'status' => 'closed',
+            'ended_at' => now(),
+            'draft' => null,
+        ]);
+    }
+
+    /**
      * Si la conversación se interrumpió, recupera el borrador o lo descarta al expirar.
      */
     public function resume(Establishment $establishment, Conversation $conversation): ?ChatReply
@@ -69,7 +91,7 @@ class ChatbotService
         );
 
         if ($reply && ! $alreadyNotified) {
-            $this->store($conversation, 'assistant', $reply->text, $reply->payload());
+            $this->store($conversation, 'assistant', $reply->text, $this->payloadFor($reply));
         }
 
         return $reply;
@@ -79,7 +101,8 @@ class ChatbotService
     {
         abort_unless($conversation->establishment_id === $establishment->id, 404);
 
-        $this->store($conversation, 'user', $message);
+        $history = $this->history($conversation);
+        $userMessage = $this->store($conversation, 'user', $message);
 
         $context = new EstablishmentContext($establishment);
         $normalized = EstablishmentContext::normalize($message);
@@ -89,13 +112,45 @@ class ChatbotService
         if ($reply === null) {
             $reply = $this->responders
                 ->make($this->structured)
-                ->generate($message, $this->structured->answer($normalized, $context), $context);
+                ->generate($message, $this->structured->answer($normalized, $context), $context, $history);
         }
 
-        $this->store($conversation, 'assistant', $reply->text, $reply->payload());
+        if ($reply->isOrderFlow) {
+            $userMessage->update(['payload' => [self::ORDER_FLAG => true]]);
+        }
+
+        $this->store($conversation, 'assistant', $reply->text, $this->payloadFor($reply));
         $conversation->update(['last_activity_at' => now()]);
 
         return $reply;
+    }
+
+    /**
+     * Últimos mensajes informativos para que la IA entienda el contexto.
+     * Los del pedido se excluyen porque contienen nombre, teléfono y dirección del cliente.
+     *
+     * @return array<int, array{role: string, content: string}>
+     */
+    private function history(Conversation $conversation): array
+    {
+        return $conversation->messages()
+            ->latest('id')
+            ->limit(self::HISTORY_SCAN)
+            ->get()
+            ->reject(fn (ConversationMessage $message) => (bool) ($message->payload[self::ORDER_FLAG] ?? false))
+            ->take(self::HISTORY_SIZE)
+            ->reverse()
+            ->map(fn (ConversationMessage $message) => ['role' => $message->role, 'content' => $message->content])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function payloadFor(ChatReply $reply): array
+    {
+        return $reply->isOrderFlow ? [...$reply->payload(), self::ORDER_FLAG => true] : $reply->payload();
     }
 
     private function orderFor(Establishment $establishment, Conversation $conversation): OrderConversation
@@ -106,9 +161,9 @@ class ChatbotService
     /**
      * @param  array<string, mixed>|null  $payload
      */
-    private function store(Conversation $conversation, string $role, string $content, ?array $payload = null): void
+    private function store(Conversation $conversation, string $role, string $content, ?array $payload = null): ConversationMessage
     {
-        $conversation->messages()->create([
+        return $conversation->messages()->create([
             'role' => $role,
             'content' => $content,
             'payload' => $payload ?: null,

@@ -264,3 +264,86 @@ test('if the provider fails the structured answer is used', function () {
 
     expect(chat($establishment)->say('¿dónde están?'))->toContain($establishment->address);
 });
+
+test('the provider receives the recent conversation as alternating turns', function () {
+    config(['services.chatbot' => ['driver' => 'gemini', 'key' => 'clave-de-prueba', 'model' => 'modelo-de-prueba', 'url' => null]]);
+    Http::fake(['*' => Http::response(['candidates' => [['content' => ['parts' => [['text' => 'Respuesta redactada']]]]]])]);
+    [, $establishment] = catalogFixture();
+    $chat = chat($establishment);
+
+    $chat->say('¿tienen hamburguesa clasica?');
+    $chat->say('¿y cuánto vale?');
+
+    $contents = data_get(Http::recorded()[1][0]->data(), 'contents');
+
+    expect(array_column($contents, 'role'))->toBe(['user', 'model', 'user'])
+        ->and($contents[0]['parts'][0]['text'])->toBe('¿tienen hamburguesa clasica?')
+        ->and($contents[1]['parts'][0]['text'])->toBe('Respuesta redactada')
+        ->and($contents[2]['parts'][0]['text'])->toBe('¿y cuánto vale?');
+});
+
+test('the order messages never reach the provider', function () {
+    config(['services.chatbot' => ['driver' => 'openai', 'key' => 'clave-de-prueba', 'model' => 'modelo-de-prueba', 'url' => null]]);
+    Http::fake(['*' => Http::response(['choices' => [['message' => ['content' => 'Respuesta redactada']]]])]);
+    [, $establishment] = catalogFixture();
+    $chat = chat($establishment);
+
+    orderUpTo($chat);
+    $chat->say('cancelar');
+    $chat->say('¿dónde están?');
+
+    Http::assertSentCount(1);
+    Http::assertSent(function ($request) {
+        $sent = json_encode($request->data(), JSON_UNESCAPED_UNICODE);
+
+        return ! str_contains($sent, 'Ana Ruiz')
+            && ! str_contains($sent, 'Calle 10')
+            && count($request->data()['messages']) === 2
+            && data_get($request->data(), 'messages.1.content') === '¿dónde están?';
+    });
+
+    expect($chat->conversation->messages()->where('role', 'user')->where('content', 'Ana Ruiz')->value('payload'))
+        ->toBe([ChatbotService::ORDER_FLAG => true]);
+});
+
+test('the history sent to the provider is limited', function () {
+    config(['services.chatbot' => ['driver' => 'anthropic', 'key' => 'clave-de-prueba', 'model' => 'modelo-de-prueba', 'url' => null]]);
+    Http::fake(['*' => Http::response(['content' => [['text' => 'Respuesta redactada']]])]);
+    [, $establishment] = catalogFixture();
+    $chat = chat($establishment);
+
+    foreach (range(1, 6) as $number) {
+        $chat->say("¿dónde están? pregunta {$number}");
+    }
+
+    $messages = data_get(Http::recorded()[5][0]->data(), 'messages');
+
+    expect($messages)->toHaveCount(9)
+        ->and($messages[0]['role'])->toBe('user')
+        ->and($messages[0]['content'])->toBe('¿dónde están? pregunta 2')
+        ->and(end($messages)['content'])->toBe('¿dónde están? pregunta 6');
+});
+
+test('every provider limits the length of the answer', function (string $driver, array $response, string $limitPath) {
+    config(['services.chatbot' => ['driver' => $driver, 'key' => 'clave-de-prueba', 'model' => 'modelo-de-prueba', 'url' => null]]);
+    Http::fake(['*' => Http::response($response)]);
+    [, $establishment] = catalogFixture();
+
+    expect(chat($establishment)->say('¿dónde están?'))->toBe('Respuesta redactada');
+
+    Http::assertSent(fn ($request) => data_get($request->data(), $limitPath) === 400);
+})->with([
+    'gemini' => ['gemini', ['candidates' => [['content' => ['parts' => [['text' => 'Respuesta redactada']]]]]], 'generationConfig.maxOutputTokens'],
+    'anthropic' => ['anthropic', ['content' => [['text' => 'Respuesta redactada']]], 'max_tokens'],
+    'openai' => ['openai', ['choices' => [['message' => ['content' => 'Respuesta redactada']]]], 'max_completion_tokens'],
+]);
+
+test('the provider is retried only once', function () {
+    config(['services.chatbot' => ['driver' => 'gemini', 'key' => 'clave-de-prueba', 'model' => 'modelo-de-prueba', 'url' => null]]);
+    Http::fake(['*' => Http::response([], 503)]);
+    [, $establishment] = catalogFixture();
+
+    expect(chat($establishment)->say('¿dónde están?'))->toContain($establishment->address);
+
+    Http::assertSentCount(2);
+});

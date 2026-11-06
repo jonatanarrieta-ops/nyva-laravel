@@ -16,6 +16,7 @@ class ChatReply
         public array $suggestions = [],
         public ?string $link = null,
         public bool $isOrderFlow = false,
+        public bool $verified = true,
     ) {}
 
     /**

@@ -6,7 +6,7 @@ class ResponderFactory
 {
     public static function aiConfigured(): bool
     {
-        return in_array(config('services.chatbot.driver'), ['anthropic', 'openai'], true)
+        return in_array(config('services.chatbot.driver'), ['anthropic', 'gemini', 'openai'], true)
             && filled(config('services.chatbot.key'))
             && filled(config('services.chatbot.model'));
     }
