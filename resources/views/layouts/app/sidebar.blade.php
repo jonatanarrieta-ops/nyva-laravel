@@ -65,6 +65,7 @@
                             <flux:sidebar.item icon="clock" :href="route('schedules.index')" :current="request()->routeIs('schedules.*')" wire:navigate>Horarios</flux:sidebar.item>
                             <flux:sidebar.item icon="question-mark-circle" :href="route('faqs.index')" :current="request()->routeIs('faqs.*')" wire:navigate>Preguntas frecuentes</flux:sidebar.item>
                             <flux:sidebar.item icon="chat-bubble-left-right" :href="route('chatbot.settings')" :current="request()->routeIs('chatbot.*')" wire:navigate>Chatbot</flux:sidebar.item>
+                            <flux:sidebar.item icon="chat-bubble-left-ellipsis" :href="route('conversations.index')" :current="request()->routeIs('conversations.*')" wire:navigate>Conversaciones</flux:sidebar.item>
                             <flux:sidebar.item icon="user-group" :href="route('team.index')" :current="request()->routeIs('team.*')" wire:navigate>Equipo</flux:sidebar.item>
                         </flux:sidebar.group>
                     @endif

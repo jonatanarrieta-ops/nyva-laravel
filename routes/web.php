@@ -8,6 +8,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\OrderController;
@@ -70,6 +71,7 @@ Route::middleware(['auth', 'establishment:settings'])->group(function () {
     });
     Route::resource('faqs', FaqController::class)->except('show');
     Route::livewire('chatbot', 'pages::chatbot.settings')->name('chatbot.settings');
+    Route::resource('conversations', ConversationController::class)->only(['index', 'show']);
     Route::livewire('team', 'pages::team.index')->name('team.index');
 });
 
