@@ -13,7 +13,7 @@ trait ResolvesCurrentEstablishment
         $query = $request->user()->accessibleEstablishments($permission);
 
         if ($request->filled('establishment')) {
-            $establishment = (clone $query)->findOrFail($request->input('establishment'));
+            $establishment = (clone $query)->whereKey($request->integer('establishment'))->firstOrFail();
         } else {
             $establishment = (clone $query)->whereKey(session('current_establishment_id'))->first()
                 ?? $query->orderBy('name')->firstOrFail();
