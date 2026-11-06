@@ -7,9 +7,11 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('establishments/{establishment:slug}')->name('api.establishments.')->group(function () {
     Route::apiResource('conversations', ConversationController::class)
         ->only(['store', 'show'])
-        ->scoped(['conversation' => 'token']);
+        ->scoped(['conversation' => 'token'])
+        ->middleware('throttle:chatbot-conversations');
 
     Route::apiResource('conversations.messages', MessageController::class)
         ->only(['store'])
-        ->scoped(['conversation' => 'token']);
+        ->scoped(['conversation' => 'token'])
+        ->middleware('throttle:chatbot-messages');
 });
