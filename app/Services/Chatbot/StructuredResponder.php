@@ -39,6 +39,7 @@ class StructuredResponder implements ResponseGenerator
                 'No tengo esa información. Puedo ayudarte con productos, precios, horarios y pedidos.'
                 ." También puedes llamar al {$establishment->phone}.",
                 suggestions: $this->defaultSuggestions(),
+                verified: false,
             ),
         };
     }
