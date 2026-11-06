@@ -81,10 +81,10 @@ test('the three modules work together from the platform to the reports', functio
         ->and((float) $order->total)->toBe(50000.0)
         ->and($owner->notifications()->count())->toBe(1);
 
-    $orders = Livewire::actingAs($owner)->test('orders.index')->assertSee('Cliente Demo');
+    $this->actingAs($owner)->get(route('orders.index'))->assertSee('Cliente Demo');
 
     foreach (['confirmed', 'preparing', 'shipped', 'delivered'] as $status) {
-        $orders->call('updateStatus', $order->id, $status);
+        $this->patch(route('orders.update', $order->id), ['status' => $status])->assertSessionHas('success');
 
         expect($order->fresh()->status)->toBe($status);
     }

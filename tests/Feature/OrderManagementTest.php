@@ -3,10 +3,7 @@
 use App\Actions\PlaceOrder;
 use App\Models\Order;
 use App\Models\Product;
-use App\Models\User;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
-use Livewire\Livewire;
 
 $customer = [
     'customer_name' => 'Cliente Demo',
@@ -28,33 +25,48 @@ test('placing an order uses database prices and recalculates totals', function (
 test('admin form ignores a manipulated price', function () {
     [$admin, $establishment, , $product] = catalogFixture();
 
-    Livewire::actingAs($admin)
-        ->test('orders.index')
-        ->call('openCreateForm')
-        ->set('establishment_id', $establishment->id)
-        ->set('customer_name', 'Ana')
-        ->set('customer_phone', '3001234567')
-        ->set('delivery_address', 'Calle 1')
-        ->call('addProduct', $product->id)
-        ->set("cart.{$product->id}.price", 1)
-        ->call('saveOrder')
-        ->assertHasNoErrors();
+    $this->actingAs($admin)
+        ->get(route('orders.create', ['establishment' => $establishment->id]))
+        ->assertOk()
+        ->assertSee($product->name);
 
-    expect((float) Order::firstOrFail()->total)->toBe(25000.0);
+    $response = $this->post(route('orders.store'), [
+        'establishment_id' => $establishment->id,
+        'customer_name' => 'Ana',
+        'customer_phone' => '3001234567',
+        'delivery_address' => 'Calle 1',
+        'items' => [$product->id => 1],
+        'price' => 1,
+        'total' => 1,
+    ]);
+
+    $order = Order::firstOrFail();
+
+    $response->assertRedirect(route('orders.show', $order->id));
+
+    expect((float) $order->total)->toBe(25000.0)
+        ->and($order->channel)->toBe('panel');
 });
 
 test('admin form requires the delivery address', function () {
     [$admin, $establishment, , $product] = catalogFixture();
 
-    Livewire::actingAs($admin)
-        ->test('orders.index')
-        ->call('openCreateForm')
-        ->set('establishment_id', $establishment->id)
-        ->set('customer_name', 'Ana')
-        ->set('customer_phone', '3001234567')
-        ->call('addProduct', $product->id)
-        ->call('saveOrder')
-        ->assertHasErrors('delivery_address');
+    $this->actingAs($admin)
+        ->post(route('orders.store'), [
+            'establishment_id' => $establishment->id,
+            'customer_name' => 'Ana',
+            'customer_phone' => '3001234567',
+            'items' => [$product->id => 1],
+        ])
+        ->assertSessionHasErrors('delivery_address');
+
+    $this->post(route('orders.store'), [
+        'establishment_id' => $establishment->id,
+        'customer_name' => 'Ana',
+        'customer_phone' => '3001234567',
+        'delivery_address' => 'Calle 1',
+        'items' => [$product->id => 0],
+    ])->assertSessionHasErrors('cart');
 
     expect(Order::count())->toBe(0);
 });
@@ -102,9 +114,9 @@ test('orders only follow the allowed status transitions', function (string $from
     [$admin, $establishment] = catalogFixture();
     $order = makeOrder($establishment->id, $from);
 
-    Livewire::actingAs($admin)
-        ->test('orders.index')
-        ->call('updateStatus', $order->id, $to);
+    $this->actingAs($admin)
+        ->patch(route('orders.update', $order->id), ['status' => $to])
+        ->assertSessionHas($allowed ? 'success' : 'error');
 
     expect($order->fresh()->status)->toBe($allowed ? $to : $from);
 })->with([
@@ -123,16 +135,24 @@ test('orders only follow the allowed status transitions', function (string $from
 ]);
 
 test('another owner cannot change a foreign order', function () {
-    [, $establishment] = catalogFixture();
+    [, $establishment, , $product] = catalogFixture();
     $order = makeOrder($establishment->id);
-    $other = User::factory()->create(['role' => 'establishment_admin']);
+    [$other] = catalogFixture();
 
-    expect(fn () => Livewire::actingAs($other)
-        ->test('orders.index')
-        ->call('updateStatus', $order->id, 'confirmed'))
-        ->toThrow(ModelNotFoundException::class);
+    $this->actingAs($other)
+        ->patch(route('orders.update', $order->id), ['status' => 'confirmed'])
+        ->assertNotFound();
 
-    expect($order->fresh()->status)->toBe('pending');
+    $this->post(route('orders.store'), [
+        'establishment_id' => $establishment->id,
+        'customer_name' => 'Ana',
+        'customer_phone' => '3001234567',
+        'delivery_address' => 'Calle 1',
+        'items' => [$product->id => 1],
+    ])->assertSessionHasErrors('establishment_id');
+
+    expect($order->fresh()->status)->toBe('pending')
+        ->and(Order::count())->toBe(1);
 });
 
 test('foreign orders are not listed nor opened from the url', function () {
@@ -141,7 +161,20 @@ test('foreign orders are not listed nor opened from the url', function () {
     [$other] = catalogFixture();
 
     $this->actingAs($other)
-        ->get(route('orders.index', ['order' => $order->id]))
+        ->get(route('orders.index'))
         ->assertOk()
         ->assertDontSee('Calle de prueba');
+
+    $this->get(route('orders.show', $order->id))->assertNotFound();
+});
+
+test('the owner sees the detail of its own order', function () {
+    [$admin, $establishment] = catalogFixture();
+    $order = makeOrder($establishment->id);
+
+    $this->actingAs($admin)
+        ->get(route('orders.show', $order->id))
+        ->assertOk()
+        ->assertSee("Pedido #{$order->id}")
+        ->assertSee('Calle de prueba');
 });

@@ -6,6 +6,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FaqController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\TrackingController;
@@ -54,7 +55,7 @@ Route::middleware(['auth', 'establishment:catalog'])->group(function () {
 });
 
 Route::middleware(['auth', 'establishment:orders'])->group(function () {
-    Route::livewire('orders', 'orders.index')->name('orders.index');
+    Route::resource('orders', OrderController::class)->only(['index', 'create', 'store', 'show', 'update']);
     Route::livewire('reports', 'pages::reports.index')->name('reports.index');
 });
 
