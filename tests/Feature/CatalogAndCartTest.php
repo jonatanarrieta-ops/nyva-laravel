@@ -13,6 +13,21 @@ test('the home page never lists the establishments', function () {
         ->assertDontSee($establishment->slug);
 });
 
+test('the home page presents the platform without a cart', function () {
+    [, $establishment] = catalogFixture();
+    $plan = $establishment->currentPlan();
+
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertSee('Cómo funciona')
+        ->assertSee($plan->name)
+        ->assertSee(route('login'), false)
+        ->assertDontSee(route('cart.index'), false);
+
+    $this->get(route('catalog.show', $establishment))
+        ->assertSee(route('cart.index'), false);
+});
+
 test('a business page only links to that business', function () {
     [, $establishment] = catalogFixture();
     [, $other] = catalogFixture();
