@@ -150,7 +150,7 @@ class ProductController extends Controller
             'image.max' => ImageStorage::MESSAGES['max'],
         ]);
 
-        $category = $this->ownedCategories()->with('establishment')->find($data['category_id']);
+        $category = $this->ownedCategories()->with('establishment')->whereKey((int) $data['category_id'])->first();
 
         if (! $category) {
             throw ValidationException::withMessages([

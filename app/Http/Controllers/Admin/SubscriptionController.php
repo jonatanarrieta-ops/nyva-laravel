@@ -76,7 +76,7 @@ class SubscriptionController extends Controller
         ]);
 
         $data['end_date'] ??= Carbon::parse($data['start_date'])
-            ->addDays(Plan::findOrFail($data['plan_id'])->duration_days)
+            ->addDays(Plan::query()->whereKey((int) $data['plan_id'])->firstOrFail()->duration_days)
             ->toDateString();
 
         return $data;

@@ -51,7 +51,7 @@ class OrderController extends Controller
     public function create(Request $request): View
     {
         $establishment = $request->filled('establishment')
-            ? Auth::user()->accessibleEstablishments('orders')->findOrFail($request->query('establishment'))
+            ? Auth::user()->accessibleEstablishments('orders')->whereKey($request->integer('establishment'))->firstOrFail()
             : null;
 
         return view('orders.create', [
@@ -81,10 +81,10 @@ class OrderController extends Controller
             throw ValidationException::withMessages(['establishment_id' => 'El establecimiento seleccionado no es válido.']);
         }
 
-        $quantities = collect($data['items'] ?? [])
-            ->map(fn ($quantity) => (int) $quantity)
-            ->filter(fn (int $quantity) => $quantity > 0)
-            ->all();
+        $quantities = array_filter(
+            array_map(intval(...), (array) ($data['items'] ?? [])),
+            fn (int $quantity) => $quantity > 0,
+        );
 
         if ($quantities === []) {
             throw ValidationException::withMessages(['cart' => 'Debes agregar al menos un producto al pedido.']);

@@ -52,7 +52,7 @@ class CheckoutController extends Controller
                 'customer_phone' => trim((string) $request->input('customer_phone')),
                 'delivery_address' => trim((string) $request->input('delivery_address')),
             ],
-            Auth::id(),
+            $request->user()?->id,
             'web',
             $request->input('order_key'),
         );
