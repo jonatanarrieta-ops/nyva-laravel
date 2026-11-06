@@ -27,7 +27,11 @@
                 @endisset
 
                 <nav class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-medium text-zinc-600">
-                    <livewire:pages::cart.badge />
+                    @if (request()->routeIs('home'))
+                        <a href="{{ route('login') }}" class="rounded-lg px-3 py-2 font-semibold text-blue-800 hover:bg-blue-50">Acceso para negocios</a>
+                    @else
+                        <livewire:pages::cart.badge />
+                    @endif
 
                     {{-- La página pública es solo para clientes: no enlaza a cuentas ni paneles de la plataforma. --}}
                 </nav>

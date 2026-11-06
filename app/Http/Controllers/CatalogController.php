@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Establishment;
+use App\Models\Plan;
 use App\Models\Product;
 use App\Services\Chatbot\EstablishmentContext;
 use Illuminate\Contracts\View\View;
@@ -13,6 +14,7 @@ class CatalogController extends Controller
     {
         return view('public.catalog.index', [
             'title' => 'Asistente virtual para negocios',
+            'plans' => Plan::query()->where('status', 'active')->orderBy('monthly_price')->get(),
         ]);
     }
 
