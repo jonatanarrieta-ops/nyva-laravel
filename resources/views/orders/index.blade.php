@@ -40,7 +40,7 @@
             @else
                 <div class="divide-y divide-slate-100">
                     @foreach ($orders as $order)
-                        <article class="grid grid-cols-1 gap-3 p-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_7rem_minmax(0,1.4fr)_auto] md:items-center md:gap-4 md:px-5">
+                        <article class="grid grid-cols-1 gap-3 p-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_7rem_auto_auto] md:items-center md:gap-4 md:px-5">
                             <div class="min-w-0">
                                 <p class="truncate font-semibold text-slate-800">#{{ $order->id }} · {{ $order->customer_name }}</p>
                                 <p class="text-xs text-slate-500">{{ $order->customer_phone }} · {{ $order->ordered_at?->format('d/m/Y H:i') ?? '—' }}</p>
@@ -50,7 +50,7 @@
 
                             <p class="font-semibold text-slate-800">$ {{ number_format((float) $order->total, 0, ',', '.') }}</p>
 
-                            <div class="flex flex-wrap items-center gap-2">
+                            <div class="flex flex-wrap items-center gap-2 md:flex-nowrap">
                                 <x-order-status :status="$order->status" :label="$order->statusLabel()" />
                                 @include('orders._status-form')
                             </div>

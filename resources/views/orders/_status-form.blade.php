@@ -1,7 +1,7 @@
 @php($transitions = \App\Models\Order::TRANSITIONS[$order->status] ?? [])
 
 @if (count($transitions) > 0)
-    <form method="POST" action="{{ route('orders.update', $order->id) }}" class="flex items-center gap-2">
+    <form method="POST" action="{{ route('orders.update', $order->id) }}" class="flex shrink-0 items-center gap-2">
         @csrf
         @method('PATCH')
         <select name="status" required aria-label="Cambiar estado del pedido {{ $order->id }}" class="nyva-input w-auto! py-1.5! text-xs">
