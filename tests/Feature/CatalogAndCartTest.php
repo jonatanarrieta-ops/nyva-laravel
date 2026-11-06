@@ -3,8 +3,6 @@
 use App\Models\Category;
 use App\Models\Product;
 use App\Services\Cart;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Livewire\Livewire;
 
 test('the home page never lists the establishments', function () {
     [, $establishment] = catalogFixture();
@@ -72,31 +70,32 @@ test('inactive products are hidden and unavailable ones are labelled', function 
 test('an unavailable product cannot be added to the cart', function () {
     [, $establishment, , $product] = catalogFixture(['available' => false]);
 
-    Livewire::test('pages::catalog.show', ['establishment' => $establishment])
-        ->call('addToCart', $product->id)
-        ->assertSet('error', "{$product->name} no está disponible.");
+    $this->post(route('cart.items.store', $product))
+        ->assertRedirect(route('catalog.show', $establishment))
+        ->assertSessionHas('error', "{$product->name} no está disponible.");
 
     expect(app(Cart::class)->count())->toBe(0);
 });
 
-test('a product from another establishment cannot be added from this catalog', function () {
-    [, $establishment] = catalogFixture();
-    [, , , $foreignProduct] = catalogFixture();
+test('inactive products and products of private businesses cannot be added', function () {
+    [, $establishment, , $product] = catalogFixture();
+    [, , , $hidden] = catalogFixture(['status' => 'inactive']);
 
-    expect(fn () => Livewire::test('pages::catalog.show', ['establishment' => $establishment])
-        ->call('addToCart', $foreignProduct->id))
-        ->toThrow(ModelNotFoundException::class);
+    $establishment->forceFill(['status' => 'inactive'])->save();
+
+    $this->post(route('cart.items.store', $product))->assertNotFound();
+    $this->post(route('cart.items.store', $hidden))->assertNotFound();
+
+    expect(app(Cart::class)->count())->toBe(0);
 });
 
 test('the cart adds, changes quantities and calculates totals', function () {
     [, $establishment, $category, $product] = catalogFixture();
     $soda = Product::create(['category_id' => $category->id, 'name' => 'Gaseosa', 'price' => 5000, 'status' => 'active', 'available' => true]);
 
-    Livewire::test('pages::catalog.show', ['establishment' => $establishment])
-        ->call('addToCart', $product->id)
-        ->call('addToCart', $product->id)
-        ->call('addToCart', $soda->id)
-        ->assertDispatched('cart-updated');
+    $this->post(route('cart.items.store', $product))->assertRedirect(route('catalog.show', $establishment));
+    $this->post(route('cart.items.store', $product));
+    $this->post(route('cart.items.store', $soda))->assertSessionHas('notice');
 
     $cart = app(Cart::class);
 
@@ -104,16 +103,29 @@ test('the cart adds, changes quantities and calculates totals', function () {
         ->and($cart->count())->toBe(3)
         ->and($cart->lines()->sum('subtotal'))->toBe(55000.0);
 
-    Livewire::test('pages::cart.index')
-        ->assertSee('$ 55.000')
-        ->call('increase', $soda->id)
-        ->assertSee('$ 60.000')
-        ->call('decrease', $product->id)
-        ->assertSee('$ 35.000')
-        ->call('remove', $soda->id)
-        ->assertSee('$ 25.000')
-        ->call('clear')
-        ->assertSee('Tu carrito está vacío.');
+    $this->get(route('cart.index'))->assertOk()->assertSee('$ 55.000');
+
+    $this->patch(route('cart.items.update', $soda->id), ['quantity' => 2])->assertRedirect(route('cart.index'));
+    $this->get(route('cart.index'))->assertSee('$ 60.000');
+
+    $this->patch(route('cart.items.update', $product->id), ['quantity' => 1]);
+    $this->get(route('cart.index'))->assertSee('$ 35.000');
+
+    $this->delete(route('cart.items.destroy', $soda->id))->assertRedirect(route('cart.index'));
+    $this->get(route('cart.index'))->assertSee('$ 25.000');
+
+    $this->delete(route('cart.clear'))->assertRedirect(route('cart.index'));
+    $this->get(route('cart.index'))->assertSee('Tu carrito está vacío.');
+});
+
+test('cart quantities are validated on the server', function () {
+    [, , , $product] = catalogFixture();
+    app(Cart::class)->add($product);
+
+    $this->patch(route('cart.items.update', $product->id), ['quantity' => 500])->assertSessionHasErrors('quantity');
+    $this->patch(route('cart.items.update', $product->id), ['quantity' => 'dos'])->assertSessionHasErrors('quantity');
+
+    expect(app(Cart::class)->quantities())->toBe([$product->id => 1]);
 });
 
 test('the cart uses the current database price', function () {
@@ -143,14 +155,15 @@ test('adding from another establishment warns and never mixes products', functio
     $cart = app(Cart::class);
     $cart->add($product);
 
-    $component = Livewire::test('pages::catalog.show', ['establishment' => $other])
-        ->call('addToCart', $otherProduct->id)
-        ->assertSet('pendingProductId', $otherProduct->id)
-        ->assertSee('Tu carrito contiene productos de otro establecimiento.');
+    $this->post(route('cart.items.store', $otherProduct))
+        ->assertRedirect(route('catalog.show', $other))
+        ->assertSessionHas('pending_product_id', $otherProduct->id);
+
+    $this->get(route('catalog.show', $other))->assertSee('Tu carrito contiene productos de otro establecimiento.');
 
     expect(array_keys($cart->quantities()))->toBe([$product->id]);
 
-    $component->call('replaceCart')->assertSet('pendingProductId', null);
+    $this->post(route('cart.items.store', $otherProduct), ['replace' => 1]);
 
     expect(array_keys($cart->quantities()))->toBe([$otherProduct->id])
         ->and($cart->establishmentId())->toBe($other->id);
@@ -162,10 +175,9 @@ test('keeping the cart discards the pending product', function () {
     $cart = app(Cart::class);
     $cart->add($product);
 
-    Livewire::test('pages::catalog.show', ['establishment' => $other])
-        ->call('addToCart', $otherProduct->id)
-        ->call('keepCart')
-        ->assertSet('pendingProductId', null);
+    $this->post(route('cart.items.store', $otherProduct));
+    $this->get(route('catalog.show', $other))->assertSee('Tu carrito contiene productos de otro establecimiento.');
+    $this->get(route('catalog.show', $other))->assertDontSee('Tu carrito contiene productos de otro establecimiento.');
 
     expect(array_keys($cart->quantities()))->toBe([$product->id]);
 });
@@ -175,7 +187,7 @@ test('a product that stopped being available blocks the checkout link', function
     app(Cart::class)->add($product);
     $product->update(['available' => false]);
 
-    Livewire::test('pages::cart.index')
+    $this->get(route('cart.index'))
         ->assertSee('Algunos productos ya no están disponibles.')
         ->assertDontSee(route('checkout'));
 });

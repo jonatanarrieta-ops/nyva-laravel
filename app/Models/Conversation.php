@@ -58,9 +58,4 @@ class Conversation extends Model
     {
         return $this->hasMany(ConversationMessage::class);
     }
-
-    public function establishment(): BelongsTo
-    {
-        return $this->belongsTo(Establishment::class);
-    }
 }

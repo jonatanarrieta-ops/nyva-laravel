@@ -35,7 +35,11 @@
         </header>
 
         <main class="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
-            {{ $slot }}
+            @hasSection('content')
+                @yield('content')
+            @else
+                {{ $slot ?? '' }}
+            @endif
         </main>
 
         @fluxScripts

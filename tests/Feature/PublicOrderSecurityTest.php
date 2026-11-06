@@ -5,7 +5,7 @@ use App\Models\Establishment;
 use App\Models\Order;
 use App\Models\User;
 use App\Services\Cart;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 
@@ -19,15 +19,16 @@ test('guests can place an order and follow it with its link', function () {
     [, , , $product] = catalogFixture();
     app(Cart::class)->add($product);
 
-    $component = Livewire::test('pages::checkout.index')
-        ->set('customer_name', 'Ana Ruiz')
-        ->set('customer_phone', '3001234567')
-        ->set('delivery_address', 'Calle 10')
-        ->call('placeOrder');
+    $response = $this->post(route('checkout.store'), [
+        'order_key' => (string) Str::uuid(),
+        'customer_name' => 'Ana Ruiz',
+        'customer_phone' => '3001234567',
+        'delivery_address' => 'Calle 10',
+    ]);
 
     $order = Order::firstOrFail();
 
-    $component->assertRedirect(route('orders.track', $order->public_token));
+    $response->assertRedirect(route('orders.track', $order->public_token));
 
     expect($order->user_id)->toBeNull();
 });
@@ -58,15 +59,11 @@ test('the public link shows masked data and protects itself', function () use ($
 test('the public link cannot modify an order', function () {
     [, $establishment] = catalogFixture();
     $order = makeOrder($establishment->id);
+    $url = route('orders.track', $order->public_token);
 
-    $component = Livewire::test('pages::tracking.show', ['token' => $order->public_token]);
-
-    foreach (['updateStatus', 'cancel', 'save'] as $method) {
-        expect(fn () => $component->call($method, 'cancelled'))->toThrow(Exception::class);
+    foreach (['post', 'put', 'patch', 'delete'] as $method) {
+        $this->{$method}($url, ['status' => 'cancelled'])->assertMethodNotAllowed();
     }
-
-    expect(fn () => Livewire::test('pages::tracking.show', ['token' => $order->public_token])->set('token', 'x'))
-        ->toThrow(Exception::class);
 
     expect($order->fresh()->status)->toBe('pending');
 });
@@ -135,23 +132,25 @@ test('an owner cannot switch to a foreign establishment', function () {
     [$owner] = catalogFixture();
     [, $foreign] = catalogFixture();
 
-    expect(fn () => Livewire::actingAs($owner)
-        ->test('pages::faqs.index')
-        ->set('currentEstablishmentId', $foreign->id))
-        ->toThrow(ModelNotFoundException::class);
+    $this->actingAs($owner);
+
+    $this->get(route('faqs.index', ['establishment' => $foreign->id]))->assertNotFound();
+    $this->get(route('schedules.index', ['establishment' => $foreign->id]))->assertNotFound();
+    $this->put(route('schedules.update'), ['establishment' => $foreign->id, 'days' => []])->assertNotFound();
 });
 
-test('owners only see their own data in every list', function (string $component) {
+test('owners only see their own data in every list', function (string $routeName) {
     [$owner] = catalogFixture();
     [, $foreign] = catalogFixture();
     $foreign->update(['name' => 'Negocio ajeno']);
     $foreign->categories()->update(['name' => 'Categoría ajena']);
 
-    Livewire::actingAs($owner)
-        ->test($component)
+    $this->actingAs($owner)
+        ->get(route($routeName))
+        ->assertOk()
         ->assertDontSee('Negocio ajeno')
         ->assertDontSee('Categoría ajena');
-})->with(['pages::categories.index', 'pages::products.index', 'orders.index', 'pages::reports.index']);
+})->with(['categories.index', 'products.index', 'orders.index', 'reports.index']);
 
 test('users cannot raise their own role from the profile', function () {
     $user = User::factory()->create();

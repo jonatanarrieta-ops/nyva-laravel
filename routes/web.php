@@ -1,13 +1,40 @@
 <?php
 
+use App\Http\Controllers\Admin\EstablishmentController as AdminEstablishmentController;
+use App\Http\Controllers\Admin\PlanController;
+use App\Http\Controllers\Admin\SubscriptionController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FaqController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\TrackingController;
 use Illuminate\Support\Facades\Route;
 
-Route::livewire('/', 'pages::catalog.index')->name('home');
-Route::livewire('establecimiento/{establishment:slug}', 'pages::catalog.show')->name('catalog.show');
-Route::livewire('carrito', 'pages::cart.index')->name('cart.index');
-Route::livewire('checkout', 'pages::checkout.index')->name('checkout');
-Route::livewire('pedido/{token}', 'pages::tracking.show')
+Route::controller(CatalogController::class)->group(function () {
+    Route::get('/', 'index')->name('home');
+    Route::get('establecimiento/{establishment:slug}', 'show')->name('catalog.show');
+});
+
+Route::prefix('carrito')->name('cart.')->controller(CartController::class)->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::delete('/', 'clear')->name('clear');
+    Route::post('productos/{product}', 'store')->name('items.store');
+    Route::patch('productos/{product}', 'update')->whereNumber('product')->name('items.update');
+    Route::delete('productos/{product}', 'destroy')->whereNumber('product')->name('items.destroy');
+});
+
+Route::controller(CheckoutController::class)->group(function () {
+    Route::get('checkout', 'create')->name('checkout');
+    Route::post('checkout', 'store')->name('checkout.store');
+});
+
+Route::get('pedido/{token}', [TrackingController::class, 'show'])
     ->middleware(['throttle:60,1', 'tracking'])
     ->where('token', '[A-Za-z0-9]{40}')
     ->name('orders.track');
@@ -27,28 +54,33 @@ Route::middleware(['auth', 'establishment'])->group(function () {
 });
 
 Route::middleware(['auth', 'establishment:catalog'])->group(function () {
-    Route::livewire('categories', 'pages::categories.index')->name('categories.index');
-    Route::livewire('products', 'pages::products.index')->name('products.index');
+    Route::resource('categories', CategoryController::class)->except('show');
+    Route::resource('products', ProductController::class)->except('show');
 });
 
 Route::middleware(['auth', 'establishment:orders'])->group(function () {
-    Route::livewire('orders', 'orders.index')->name('orders.index');
+    Route::resource('orders', OrderController::class)->only(['index', 'create', 'store', 'show', 'update']);
     Route::livewire('reports', 'pages::reports.index')->name('reports.index');
 });
 
 Route::middleware(['auth', 'establishment:settings'])->group(function () {
-    Route::livewire('schedules', 'pages::schedules.index')->name('schedules.index');
-    Route::livewire('faqs', 'pages::faqs.index')->name('faqs.index');
+    Route::prefix('schedules')->name('schedules.')->controller(ScheduleController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::put('/', 'update')->name('update');
+    });
+    Route::resource('faqs', FaqController::class)->except('show');
     Route::livewire('chatbot', 'pages::chatbot.settings')->name('chatbot.settings');
     Route::livewire('team', 'pages::team.index')->name('team.index');
 });
 
 Route::middleware(['auth', 'platform'])->prefix('admin')->name('admin.')->group(function () {
     Route::livewire('/', 'pages::admin.dashboard')->name('dashboard');
-    Route::livewire('establishments', 'pages::admin.establishments')->name('establishments');
-    Route::livewire('users', 'pages::admin.users')->name('users');
-    Route::livewire('plans', 'pages::admin.plans')->name('plans');
-    Route::livewire('subscriptions', 'pages::admin.subscriptions')->name('subscriptions');
+    Route::resource('establishments', AdminEstablishmentController::class)->except(['show', 'destroy']);
+    Route::patch('establishments/{establishment}/status', [AdminEstablishmentController::class, 'updateStatus'])->name('establishments.status');
+    Route::resource('users', UserController::class)->except(['show', 'destroy']);
+    Route::patch('users/{user}/status', [UserController::class, 'updateStatus'])->name('users.status');
+    Route::resource('plans', PlanController::class)->except('show');
+    Route::resource('subscriptions', SubscriptionController::class)->except(['show', 'destroy']);
     Route::livewire('statistics', 'pages::admin.statistics')->name('statistics');
 });
 

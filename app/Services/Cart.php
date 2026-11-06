@@ -92,6 +92,23 @@ class Cart
         $this->store($items);
     }
 
+    public function setQuantity(int $productId, int $quantity): void
+    {
+        $items = $this->quantities();
+
+        if (! isset($items[$productId])) {
+            return;
+        }
+
+        if ($quantity < 1) {
+            unset($items[$productId]);
+        } else {
+            $items[$productId] = min($quantity, PlaceOrder::MAX_QUANTITY);
+        }
+
+        $this->store($items);
+    }
+
     public function remove(int $productId): void
     {
         $items = $this->quantities();

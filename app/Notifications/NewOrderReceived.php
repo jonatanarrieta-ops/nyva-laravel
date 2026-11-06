@@ -20,6 +20,6 @@ class NewOrderReceived extends InternalNotification
 
     protected function url(): ?string
     {
-        return route('orders.index', ['order' => $this->order->id], false);
+        return route('orders.show', $this->order->id, false);
     }
 }

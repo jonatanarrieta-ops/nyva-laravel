@@ -60,7 +60,7 @@
                                     <td class="whitespace-nowrap font-semibold text-slate-800">$ {{ number_format((float) $order->total, 0, ',', '.') }}</td>
                                     <td><x-order-status :status="$order->status" :label="$order->statusLabel()" /></td>
                                     <td class="whitespace-nowrap">{{ $order->ordered_at?->format('d/m/Y H:i') ?? '—' }}</td>
-                                    <td class="text-right"><a href="{{ route('orders.index', ['order' => $order->id]) }}" class="nyva-link">Ver detalle</a></td>
+                                    <td class="text-right"><a href="{{ route('orders.show', $order->id) }}" class="nyva-link">Ver detalle</a></td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -69,7 +69,7 @@
 
                 <div class="divide-y divide-slate-100 border-t border-slate-100 md:hidden">
                     @foreach ($recentOrders as $order)
-                        <a href="{{ route('orders.index', ['order' => $order->id]) }}" class="flex items-center justify-between gap-3 px-5 py-4 hover:bg-slate-50">
+                        <a href="{{ route('orders.show', $order->id) }}" class="flex items-center justify-between gap-3 px-5 py-4 hover:bg-slate-50">
                             <span class="min-w-0">
                                 <span class="block font-semibold text-slate-800">#{{ $order->id }} · {{ $order->customer_name }}</span>
                                 <span class="block truncate text-xs text-slate-500">{{ $order->ordered_at?->format('d/m/Y H:i') }} · $ {{ number_format((float) $order->total, 0, ',', '.') }}</span>

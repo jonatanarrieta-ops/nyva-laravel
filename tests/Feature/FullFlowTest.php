@@ -11,56 +11,56 @@ use Livewire\Livewire;
 test('the three modules work together from the platform to the reports', function () {
     $platform = User::factory()->create(['role' => 'platform_admin']);
 
-    Livewire::actingAs($platform)
-        ->test('pages::admin.plans')
-        ->call('create')
-        ->set('name', 'Completo')
-        ->set('monthly_price', '50000')
-        ->set('features', array_keys(Plan::FEATURES))
-        ->call('save')
-        ->assertHasNoErrors();
+    $this->actingAs($platform)
+        ->post(route('admin.plans.store'), [
+            'name' => 'Completo',
+            'monthly_price' => '50000',
+            'duration_days' => '30',
+            'features' => array_keys(Plan::FEATURES),
+            'status' => '1',
+        ])
+        ->assertSessionHasNoErrors();
 
-    Livewire::actingAs($platform)
-        ->test('pages::admin.establishments')
-        ->call('create')
-        ->set('name', 'Burger Demo')
-        ->set('type', 'Cocina oculta')
-        ->set('address', 'Calle 1 # 2-3')
-        ->set('phone', '3001234567')
-        ->set('ownerFirstName', 'Ana')
-        ->set('ownerLastName', 'Ruiz')
-        ->set('ownerEmail', 'ana@example.com')
-        ->set('ownerPassword', 'password123')
-        ->call('save')
-        ->assertHasNoErrors();
+    $this->post(route('admin.establishments.store'), [
+        'name' => 'Burger Demo',
+        'type' => 'Cocina oculta',
+        'address' => 'Calle 1 # 2-3',
+        'phone' => '3001234567',
+        'owner_mode' => 'new',
+        'owner_first_name' => 'Ana',
+        'owner_last_name' => 'Ruiz',
+        'owner_email' => 'ana@example.com',
+        'owner_password' => 'password123',
+    ])->assertSessionHasNoErrors();
 
     $establishment = Establishment::firstOrFail();
     $owner = $establishment->user;
 
-    Livewire::actingAs($platform)
-        ->test('pages::admin.subscriptions')
-        ->call('create')
-        ->set('establishment_id', (string) $establishment->id)
-        ->set('plan_id', (string) Plan::firstOrFail()->id)
-        ->call('save')
-        ->assertHasNoErrors();
+    $this->actingAs($platform)
+        ->post(route('admin.subscriptions.store'), [
+            'establishment_id' => $establishment->id,
+            'plan_id' => Plan::firstOrFail()->id,
+            'billing_period' => 'monthly',
+            'start_date' => now()->toDateString(),
+            'status' => 'active',
+        ])
+        ->assertSessionHasNoErrors();
 
-    Livewire::actingAs($owner)
-        ->test('pages::categories.index')
-        ->call('createCategory')
-        ->set('establishmentId', (string) $establishment->id)
-        ->set('name', 'Hamburguesas')
-        ->call('save')
-        ->assertHasNoErrors();
+    $this->actingAs($owner)
+        ->post(route('categories.store'), [
+            'establishment_id' => $establishment->id,
+            'name' => 'Hamburguesas',
+            'status' => '1',
+        ])
+        ->assertSessionHasNoErrors();
 
-    Livewire::actingAs($owner)
-        ->test('pages::products.index')
-        ->call('createProduct')
-        ->set('categoryId', (string) Category::firstOrFail()->id)
-        ->set('name', 'Hamburguesa clásica')
-        ->set('price', '25000')
-        ->call('save')
-        ->assertHasNoErrors();
+    $this->post(route('products.store'), [
+        'category_id' => Category::firstOrFail()->id,
+        'name' => 'Hamburguesa clásica',
+        'price' => '25000',
+        'available' => '1',
+        'status' => '1',
+    ])->assertSessionHasNoErrors();
 
     Auth::logout();
 
@@ -82,10 +82,10 @@ test('the three modules work together from the platform to the reports', functio
         ->and((float) $order->total)->toBe(50000.0)
         ->and($owner->notifications()->count())->toBe(1);
 
-    $orders = Livewire::actingAs($owner)->test('orders.index')->assertSee('Cliente Demo');
+    $this->actingAs($owner)->get(route('orders.index'))->assertSee('Cliente Demo');
 
     foreach (['confirmed', 'preparing', 'shipped', 'delivered'] as $status) {
-        $orders->call('updateStatus', $order->id, $status);
+        $this->patch(route('orders.update', $order->id), ['status' => $status])->assertSessionHas('success');
 
         expect($order->fresh()->status)->toBe($status);
     }
