@@ -12,7 +12,10 @@ class StructuredResponder implements ResponseGenerator
 {
     public function __construct(private IntentResolver $intents) {}
 
-    public function generate(string $message, ChatReply $structured, EstablishmentContext $context): ChatReply
+    /**
+     * @param  array<int, array{role: string, content: string}>  $history
+     */
+    public function generate(string $message, ChatReply $structured, EstablishmentContext $context, array $history = []): ChatReply
     {
         return $structured;
     }
