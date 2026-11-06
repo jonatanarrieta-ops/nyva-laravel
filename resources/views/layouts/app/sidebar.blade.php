@@ -31,8 +31,8 @@
                 @if ($user->isPlatformAdmin())
                     <flux:sidebar.group heading="Plataforma" class="grid">
                         <flux:sidebar.item icon="squares-2x2" :href="route('admin.dashboard')" :current="request()->routeIs('admin.dashboard')" wire:navigate>Dashboard</flux:sidebar.item>
-                        <flux:sidebar.item icon="building-storefront" :href="route('admin.establishments')" :current="request()->routeIs('admin.establishments')" wire:navigate>Establecimientos</flux:sidebar.item>
-                        <flux:sidebar.item icon="users" :href="route('admin.users')" :current="request()->routeIs('admin.users')" wire:navigate>Usuarios</flux:sidebar.item>
+                        <flux:sidebar.item icon="building-storefront" :href="route('admin.establishments.index')" :current="request()->routeIs('admin.establishments.*')" wire:navigate>Establecimientos</flux:sidebar.item>
+                        <flux:sidebar.item icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>Usuarios</flux:sidebar.item>
                     </flux:sidebar.group>
 
                     <flux:sidebar.group heading="Negocio SaaS" class="grid">

@@ -21,19 +21,17 @@ test('the three modules work together from the platform to the reports', functio
         ])
         ->assertSessionHasNoErrors();
 
-    Livewire::actingAs($platform)
-        ->test('pages::admin.establishments')
-        ->call('create')
-        ->set('name', 'Burger Demo')
-        ->set('type', 'Cocina oculta')
-        ->set('address', 'Calle 1 # 2-3')
-        ->set('phone', '3001234567')
-        ->set('ownerFirstName', 'Ana')
-        ->set('ownerLastName', 'Ruiz')
-        ->set('ownerEmail', 'ana@example.com')
-        ->set('ownerPassword', 'password123')
-        ->call('save')
-        ->assertHasNoErrors();
+    $this->post(route('admin.establishments.store'), [
+        'name' => 'Burger Demo',
+        'type' => 'Cocina oculta',
+        'address' => 'Calle 1 # 2-3',
+        'phone' => '3001234567',
+        'owner_mode' => 'new',
+        'owner_first_name' => 'Ana',
+        'owner_last_name' => 'Ruiz',
+        'owner_email' => 'ana@example.com',
+        'owner_password' => 'password123',
+    ])->assertSessionHasNoErrors();
 
     $establishment = Establishment::firstOrFail();
     $owner = $establishment->user;

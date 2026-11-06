@@ -74,7 +74,7 @@ new #[Layout('layouts.app')] #[Title('Administración')] class extends Component
     <section class="nyva-card p-5">
         <div class="mb-4 flex items-center justify-between">
             <h2 class="font-semibold">Últimos establecimientos</h2>
-            <a href="{{ route('admin.establishments') }}" wire:navigate class="nyva-link text-sm">Ver todos</a>
+            <a href="{{ route('admin.establishments.index') }}" wire:navigate class="nyva-link text-sm">Ver todos</a>
         </div>
 
         @forelse ($latest as $establishment)

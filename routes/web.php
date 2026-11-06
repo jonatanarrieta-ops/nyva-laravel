@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\Admin\EstablishmentController as AdminEstablishmentController;
 use App\Http\Controllers\Admin\PlanController;
 use App\Http\Controllers\Admin\SubscriptionController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CategoryController;
@@ -73,8 +75,10 @@ Route::middleware(['auth', 'establishment:settings'])->group(function () {
 
 Route::middleware(['auth', 'platform'])->prefix('admin')->name('admin.')->group(function () {
     Route::livewire('/', 'pages::admin.dashboard')->name('dashboard');
-    Route::livewire('establishments', 'pages::admin.establishments')->name('establishments');
-    Route::livewire('users', 'pages::admin.users')->name('users');
+    Route::resource('establishments', AdminEstablishmentController::class)->except(['show', 'destroy']);
+    Route::patch('establishments/{establishment}/status', [AdminEstablishmentController::class, 'updateStatus'])->name('establishments.status');
+    Route::resource('users', UserController::class)->except(['show', 'destroy']);
+    Route::patch('users/{user}/status', [UserController::class, 'updateStatus'])->name('users.status');
     Route::resource('plans', PlanController::class)->except('show');
     Route::resource('subscriptions', SubscriptionController::class)->except(['show', 'destroy']);
     Route::livewire('statistics', 'pages::admin.statistics')->name('statistics');
