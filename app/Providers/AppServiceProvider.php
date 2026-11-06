@@ -43,6 +43,10 @@ class AppServiceProvider extends ServiceProvider
             ->by((string) $request->ip())
             ->response($this->tooManyRequests('Abriste muchas conversaciones. Espera un momento.')));
 
+        RateLimiter::for('chatbot-history', fn (Request $request) => Limit::perMinute(30)
+            ->by((string) $request->ip())
+            ->response($this->tooManyRequests('Consultaste el historial muchas veces. Espera un momento.')));
+
         RateLimiter::for('chatbot-messages', fn (Request $request) => Limit::perMinute(20)
             ->by((string) $request->ip())
             ->response($this->tooManyRequests('Enviaste muchos mensajes. Espera un momento.')));

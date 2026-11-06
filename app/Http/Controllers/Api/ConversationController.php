@@ -8,6 +8,7 @@ use App\Models\ConversationMessage;
 use App\Models\Establishment;
 use App\Services\Chatbot\ChatbotService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 
 class ConversationController extends Controller
 {
@@ -29,6 +30,9 @@ class ConversationController extends Controller
     {
         abort_unless($this->chatbot->isAvailable($establishment) && $conversation->status === 'active', 404);
 
+        // Igual que el widget: descarta el borrador vencido o avisa si algo del pedido cambió.
+        $this->chatbot->resume($establishment, $conversation);
+
         return response()->json([
             'token' => $conversation->token,
             'messages' => $conversation->messages()->orderBy('id')->get()->map(fn (ConversationMessage $message) => [
@@ -37,5 +41,14 @@ class ConversationController extends Controller
                 'payload' => $message->payload,
             ]),
         ]);
+    }
+
+    public function destroy(Establishment $establishment, Conversation $conversation): Response
+    {
+        abort_unless($conversation->status === 'active', 404);
+
+        $this->chatbot->close($conversation);
+
+        return response()->noContent();
     }
 }

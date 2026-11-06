@@ -6,9 +6,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('establishments/{establishment:slug}')->name('api.establishments.')->group(function () {
     Route::apiResource('conversations', ConversationController::class)
-        ->only(['store', 'show'])
+        ->only(['store', 'show', 'destroy'])
         ->scoped(['conversation' => 'token'])
-        ->middleware('throttle:chatbot-conversations');
+        ->middlewareFor(['store', 'destroy'], 'throttle:chatbot-conversations')
+        ->middlewareFor('show', 'throttle:chatbot-history');
 
     Route::apiResource('conversations.messages', MessageController::class)
         ->only(['store'])

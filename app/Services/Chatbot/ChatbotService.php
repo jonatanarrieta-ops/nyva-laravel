@@ -50,6 +50,18 @@ class ChatbotService
     }
 
     /**
+     * Cierra la conversación y descarta el pedido que no se confirmó.
+     */
+    public function close(Conversation $conversation): void
+    {
+        $conversation->update([
+            'status' => 'closed',
+            'ended_at' => now(),
+            'draft' => null,
+        ]);
+    }
+
+    /**
      * Si la conversación se interrumpió, recupera el borrador o lo descarta al expirar.
      */
     public function resume(Establishment $establishment, Conversation $conversation): ?ChatReply
