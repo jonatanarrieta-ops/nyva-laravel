@@ -1,11 +1,23 @@
 <?php
 
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
-Route::livewire('/', 'pages::catalog.index')->name('home');
-Route::livewire('establecimiento/{establishment:slug}', 'pages::catalog.show')->name('catalog.show');
-Route::livewire('carrito', 'pages::cart.index')->name('cart.index');
+Route::controller(CatalogController::class)->group(function () {
+    Route::get('/', 'index')->name('home');
+    Route::get('establecimiento/{establishment:slug}', 'show')->name('catalog.show');
+});
+
+Route::prefix('carrito')->name('cart.')->controller(CartController::class)->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::delete('/', 'clear')->name('clear');
+    Route::post('productos/{product}', 'store')->name('items.store');
+    Route::patch('productos/{product}', 'update')->whereNumber('product')->name('items.update');
+    Route::delete('productos/{product}', 'destroy')->whereNumber('product')->name('items.destroy');
+});
+
 Route::livewire('checkout', 'pages::checkout.index')->name('checkout');
 Route::livewire('pedido/{token}', 'pages::tracking.show')
     ->middleware(['throttle:60,1', 'tracking'])
