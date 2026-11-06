@@ -36,8 +36,8 @@
                     </flux:sidebar.group>
 
                     <flux:sidebar.group heading="Negocio SaaS" class="grid">
-                        <flux:sidebar.item icon="rectangle-stack" :href="route('admin.plans')" :current="request()->routeIs('admin.plans')" wire:navigate>Planes</flux:sidebar.item>
-                        <flux:sidebar.item icon="credit-card" :href="route('admin.subscriptions')" :current="request()->routeIs('admin.subscriptions')" wire:navigate>Suscripciones</flux:sidebar.item>
+                        <flux:sidebar.item icon="rectangle-stack" :href="route('admin.plans.index')" :current="request()->routeIs('admin.plans.*')" wire:navigate>Planes</flux:sidebar.item>
+                        <flux:sidebar.item icon="credit-card" :href="route('admin.subscriptions.index')" :current="request()->routeIs('admin.subscriptions.*')" wire:navigate>Suscripciones</flux:sidebar.item>
                         <flux:sidebar.item icon="chart-bar" :href="route('admin.statistics')" :current="request()->routeIs('admin.statistics')" wire:navigate>Estadísticas</flux:sidebar.item>
                     </flux:sidebar.group>
                 @elseif ($user->isEstablishmentUser())

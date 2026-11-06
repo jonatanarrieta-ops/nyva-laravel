@@ -17,7 +17,7 @@ test('only platform admins can open the platform panel', function (string $route
     $this->actingAs($owner)->get(route($routeName))->assertForbidden();
     $this->actingAs(User::factory()->create())->get(route($routeName))->assertForbidden();
     $this->actingAs(platformAdmin())->get(route($routeName))->assertOk();
-})->with(['admin.dashboard', 'admin.establishments', 'admin.users', 'admin.plans', 'admin.subscriptions', 'admin.statistics']);
+})->with(['admin.dashboard', 'admin.establishments', 'admin.users', 'admin.plans.index', 'admin.plans.create', 'admin.subscriptions.index', 'admin.subscriptions.create', 'admin.statistics']);
 
 test('platform admins are sent to their dashboard and cannot use a business panel', function () {
     $admin = platformAdmin();
@@ -108,62 +108,117 @@ test('invalid roles are rejected', function () {
 });
 
 test('plans store price, duration, limits and features', function () {
-    Livewire::actingAs(platformAdmin())
-        ->test('pages::admin.plans')
-        ->call('create')
-        ->set('name', 'Inicial')
-        ->set('monthly_price', '30000')
-        ->set('duration_days', '60')
-        ->set('product_limit', '10')
-        ->set('user_limit', '2')
-        ->set('features', ['chatbot', 'public_order'])
-        ->call('save')
-        ->assertHasNoErrors();
+    $this->actingAs(platformAdmin())
+        ->post(route('admin.plans.store'), [
+            'name' => 'Inicial',
+            'monthly_price' => '30000',
+            'duration_days' => '60',
+            'product_limit' => '10',
+            'user_limit' => '2',
+            'features' => ['chatbot', 'public_order'],
+            'status' => '1',
+        ])
+        ->assertRedirect(route('admin.plans.index'))
+        ->assertSessionHasNoErrors();
 
     $plan = Plan::firstOrFail();
 
     expect($plan->duration_days)->toBe(60)
         ->and($plan->product_limit)->toBe(10)
         ->and($plan->user_limit)->toBe(2)
+        ->and($plan->status)->toBe('active')
         ->and($plan->hasFeature('chatbot'))->toBeTrue()
         ->and($plan->hasFeature('reports'))->toBeFalse();
+
+    $this->get(route('admin.plans.edit', $plan))->assertOk()->assertSee('Inicial');
+
+    $this->put(route('admin.plans.update', $plan), [
+        'name' => 'Inicial plus',
+        'monthly_price' => '35000',
+        'duration_days' => '30',
+        'product_limit' => '',
+        'features' => [],
+        'status' => '0',
+    ])->assertSessionHasNoErrors();
+
+    $plan->refresh();
+
+    expect($plan->name)->toBe('Inicial plus')
+        ->and($plan->product_limit)->toBeNull()
+        ->and($plan->features)->toBe([])
+        ->and($plan->status)->toBe('inactive');
 });
 
 test('unknown plan features are rejected', function () {
-    Livewire::actingAs(platformAdmin())
-        ->test('pages::admin.plans')
-        ->call('create')
-        ->set('name', 'Mal')
-        ->set('monthly_price', '1')
-        ->set('features', ['inventada'])
-        ->call('save')
-        ->assertHasErrors('features.*');
+    $this->actingAs(platformAdmin())
+        ->post(route('admin.plans.store'), [
+            'name' => 'Mal',
+            'monthly_price' => '1',
+            'duration_days' => '30',
+            'features' => ['inventada'],
+        ])
+        ->assertSessionHasErrors('features.0');
+
+    expect(Plan::where('name', 'Mal')->exists())->toBeFalse();
 });
 
 test('a plan with subscriptions cannot be deleted', function () {
     [, $establishment] = catalogFixture();
     $plan = $establishment->currentPlan();
+    $free = Plan::create(['name' => 'Libre', 'monthly_price' => 0, 'duration_days' => 30, 'status' => 'active']);
 
-    Livewire::actingAs(platformAdmin())->test('pages::admin.plans')->call('delete', $plan->id);
+    $this->actingAs(platformAdmin())
+        ->delete(route('admin.plans.destroy', $plan))
+        ->assertSessionHas('error');
 
-    expect(Plan::whereKey($plan->id)->exists())->toBeTrue();
+    $this->delete(route('admin.plans.destroy', $free))->assertSessionHas('success');
+
+    expect(Plan::whereKey($plan->id)->exists())->toBeTrue()
+        ->and(Plan::whereKey($free->id)->exists())->toBeFalse();
 });
 
 test('subscriptions suggest the end date from the plan duration', function () {
     [, $establishment] = catalogFixture();
     $plan = Plan::create(['name' => 'Corto', 'monthly_price' => 1, 'duration_days' => 10, 'status' => 'active']);
 
-    Livewire::actingAs(platformAdmin())
-        ->test('pages::admin.subscriptions')
-        ->call('create')
-        ->set('establishment_id', (string) $establishment->id)
-        ->set('start_date', '2026-01-01')
-        ->set('plan_id', (string) $plan->id)
-        ->assertSet('end_date', '2026-01-11')
-        ->call('save')
-        ->assertHasNoErrors();
+    $this->actingAs(platformAdmin())
+        ->post(route('admin.subscriptions.store'), [
+            'establishment_id' => $establishment->id,
+            'plan_id' => $plan->id,
+            'billing_period' => 'monthly',
+            'start_date' => '2026-01-01',
+            'end_date' => '',
+            'status' => 'active',
+        ])
+        ->assertRedirect(route('admin.subscriptions.index'))
+        ->assertSessionHasNoErrors();
 
-    expect(Subscription::where('plan_id', $plan->id)->exists())->toBeTrue();
+    $subscription = Subscription::where('plan_id', $plan->id)->firstOrFail();
+
+    expect($subscription->end_date->toDateString())->toBe('2026-01-11');
+
+    $this->get(route('admin.subscriptions.edit', $subscription))->assertOk()->assertSee('2026-01-11');
+
+    $this->put(route('admin.subscriptions.update', $subscription), [
+        'establishment_id' => $establishment->id,
+        'plan_id' => $plan->id,
+        'billing_period' => 'annual',
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+        'status' => 'cancelled',
+    ])->assertSessionHasNoErrors();
+
+    expect($subscription->fresh()->status)->toBe('cancelled')
+        ->and($subscription->fresh()->end_date->toDateString())->toBe('2026-12-31');
+
+    $this->put(route('admin.subscriptions.update', $subscription), [
+        'establishment_id' => $establishment->id,
+        'plan_id' => $plan->id,
+        'billing_period' => 'monthly',
+        'start_date' => '2026-05-01',
+        'end_date' => '2026-01-01',
+        'status' => 'active',
+    ])->assertSessionHasErrors('end_date');
 });
 
 test('an expired subscription stops the orders', function () {

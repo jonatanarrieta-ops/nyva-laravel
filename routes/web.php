@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\PlanController;
+use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CategoryController;
@@ -73,8 +75,8 @@ Route::middleware(['auth', 'platform'])->prefix('admin')->name('admin.')->group(
     Route::livewire('/', 'pages::admin.dashboard')->name('dashboard');
     Route::livewire('establishments', 'pages::admin.establishments')->name('establishments');
     Route::livewire('users', 'pages::admin.users')->name('users');
-    Route::livewire('plans', 'pages::admin.plans')->name('plans');
-    Route::livewire('subscriptions', 'pages::admin.subscriptions')->name('subscriptions');
+    Route::resource('plans', PlanController::class)->except('show');
+    Route::resource('subscriptions', SubscriptionController::class)->except(['show', 'destroy']);
     Route::livewire('statistics', 'pages::admin.statistics')->name('statistics');
 });
 

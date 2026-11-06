@@ -11,14 +11,15 @@ use Livewire\Livewire;
 test('the three modules work together from the platform to the reports', function () {
     $platform = User::factory()->create(['role' => 'platform_admin']);
 
-    Livewire::actingAs($platform)
-        ->test('pages::admin.plans')
-        ->call('create')
-        ->set('name', 'Completo')
-        ->set('monthly_price', '50000')
-        ->set('features', array_keys(Plan::FEATURES))
-        ->call('save')
-        ->assertHasNoErrors();
+    $this->actingAs($platform)
+        ->post(route('admin.plans.store'), [
+            'name' => 'Completo',
+            'monthly_price' => '50000',
+            'duration_days' => '30',
+            'features' => array_keys(Plan::FEATURES),
+            'status' => '1',
+        ])
+        ->assertSessionHasNoErrors();
 
     Livewire::actingAs($platform)
         ->test('pages::admin.establishments')
@@ -37,13 +38,15 @@ test('the three modules work together from the platform to the reports', functio
     $establishment = Establishment::firstOrFail();
     $owner = $establishment->user;
 
-    Livewire::actingAs($platform)
-        ->test('pages::admin.subscriptions')
-        ->call('create')
-        ->set('establishment_id', (string) $establishment->id)
-        ->set('plan_id', (string) Plan::firstOrFail()->id)
-        ->call('save')
-        ->assertHasNoErrors();
+    $this->actingAs($platform)
+        ->post(route('admin.subscriptions.store'), [
+            'establishment_id' => $establishment->id,
+            'plan_id' => Plan::firstOrFail()->id,
+            'billing_period' => 'monthly',
+            'start_date' => now()->toDateString(),
+            'status' => 'active',
+        ])
+        ->assertSessionHasNoErrors();
 
     $this->actingAs($owner)
         ->post(route('categories.store'), [

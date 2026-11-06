@@ -43,7 +43,7 @@ class CheckSubscriptions extends Command
                 $alert = new AdminAlert(
                     $expired ? 'Suscripción vencida' : 'Suscripción por vencer',
                     "{$name}: ".($expired ? 'venció' : 'vence')." el {$date}.",
-                    route('admin.subscriptions', absolute: false),
+                    route('admin.subscriptions.index', absolute: false),
                 );
 
                 Notification::send($admins, $alert);
