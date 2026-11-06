@@ -14,6 +14,19 @@ use Illuminate\Support\Facades\Log;
  */
 class AiResponder implements ResponseGenerator
 {
+    /** Tokens máximos de cada respuesta; el prompt pide como máximo cuatro frases. */
+    private const MAX_OUTPUT_TOKENS = 400;
+
+    /** Segundos para conectar y para recibir la respuesta. Con dos intentos, el cliente espera menos de 20 s. */
+    private const CONNECT_TIMEOUT = 3;
+
+    private const TIMEOUT = 8;
+
+    /** Intentos en total: el primero y un reintento si falla la conexión o el proveedor (5xx). */
+    private const ATTEMPTS = 2;
+
+    private const RETRY_DELAY_MS = 300;
+
     /** Largo máximo de cada mensaje del historial que se envía al proveedor. */
     private const HISTORY_MESSAGE_LENGTH = 1000;
 
@@ -72,9 +85,9 @@ class AiResponder implements ResponseGenerator
 
     private function client(): PendingRequest
     {
-        return Http::timeout(15)->retry(
-            2,
-            500,
+        return Http::connectTimeout(self::CONNECT_TIMEOUT)->timeout(self::TIMEOUT)->retry(
+            self::ATTEMPTS,
+            self::RETRY_DELAY_MS,
             fn (\Throwable $exception) => $exception instanceof ConnectionException
                 || ($exception instanceof RequestException && $exception->response->serverError()),
         );
@@ -134,6 +147,7 @@ class AiResponder implements ResponseGenerator
                         'role' => $turn['role'] === 'user' ? 'user' : 'model',
                         'parts' => [['text' => $turn['content']]],
                     ], $turns),
+                    'generationConfig' => ['maxOutputTokens' => self::MAX_OUTPUT_TOKENS],
                 ])
                 ->throw()
                 ->json('candidates.0.content.parts.0.text');
@@ -144,7 +158,7 @@ class AiResponder implements ResponseGenerator
                 ->withHeaders(['x-api-key' => $key, 'anthropic-version' => '2023-06-01'])
                 ->post($url ?: 'https://api.anthropic.com/v1/messages', [
                     'model' => $model,
-                    'max_tokens' => 400,
+                    'max_tokens' => self::MAX_OUTPUT_TOKENS,
                     'system' => $system,
                     'messages' => $turns,
                 ])
@@ -157,6 +171,7 @@ class AiResponder implements ResponseGenerator
             ->post($url ?: 'https://api.openai.com/v1/chat/completions', [
                 'model' => $model,
                 'messages' => [['role' => 'system', 'content' => $system], ...$turns],
+                'max_completion_tokens' => self::MAX_OUTPUT_TOKENS,
             ])
             ->throw()
             ->json('choices.0.message.content');

@@ -323,3 +323,27 @@ test('the history sent to the provider is limited', function () {
         ->and($messages[0]['content'])->toBe('¿dónde están? pregunta 2')
         ->and(end($messages)['content'])->toBe('¿dónde están? pregunta 6');
 });
+
+test('every provider limits the length of the answer', function (string $driver, array $response, string $limitPath) {
+    config(['services.chatbot' => ['driver' => $driver, 'key' => 'clave-de-prueba', 'model' => 'modelo-de-prueba', 'url' => null]]);
+    Http::fake(['*' => Http::response($response)]);
+    [, $establishment] = catalogFixture();
+
+    expect(chat($establishment)->say('¿dónde están?'))->toBe('Respuesta redactada');
+
+    Http::assertSent(fn ($request) => data_get($request->data(), $limitPath) === 400);
+})->with([
+    'gemini' => ['gemini', ['candidates' => [['content' => ['parts' => [['text' => 'Respuesta redactada']]]]]], 'generationConfig.maxOutputTokens'],
+    'anthropic' => ['anthropic', ['content' => [['text' => 'Respuesta redactada']]], 'max_tokens'],
+    'openai' => ['openai', ['choices' => [['message' => ['content' => 'Respuesta redactada']]]], 'max_completion_tokens'],
+]);
+
+test('the provider is retried only once', function () {
+    config(['services.chatbot' => ['driver' => 'gemini', 'key' => 'clave-de-prueba', 'model' => 'modelo-de-prueba', 'url' => null]]);
+    Http::fake(['*' => Http::response([], 503)]);
+    [, $establishment] = catalogFixture();
+
+    expect(chat($establishment)->say('¿dónde están?'))->toContain($establishment->address);
+
+    Http::assertSentCount(2);
+});
